@@ -1,0 +1,95 @@
+/* EduCore V2.1.2 — student dashboard hero visibility + safe header spacing.
+   Loaded last so the subject hero cannot be washed out by older Mathside rules. */
+
+#studentApp .v8-hero{
+  overflow:hidden!important;
+  background:
+    radial-gradient(circle at 72% 24%,color-mix(in srgb,var(--subject-secondary) 20%,white),transparent 31%),
+    linear-gradient(118deg,var(--subject-soft) 0%,color-mix(in srgb,var(--subject-primary) 10%,white) 54%,color-mix(in srgb,var(--subject-secondary) 18%,white) 100%)!important;
+  border-bottom:1px solid color-mix(in srgb,var(--subject-primary) 16%,var(--subject-line))!important;
+  box-shadow:inset 0 -18px 38px color-mix(in srgb,var(--subject-primary) 5%,transparent)!important;
+}
+#studentApp .v8-hero::after{
+  display:block!important;
+  background:radial-gradient(circle at 60% 34%,color-mix(in srgb,var(--subject-primary) 10%,transparent),transparent 56%)!important;
+  opacity:.75!important;
+}
+#studentApp .v8-hero h1{color:var(--subject-ink)!important;text-shadow:none!important}
+#studentApp .v8-greeting-name{color:var(--subject-primary)!important}
+#studentApp .v8-hero-copy p{
+  color:color-mix(in srgb,var(--subject-ink) 78%,#64748b)!important;
+  max-width:410px!important;
+  font-weight:500;
+}
+#studentApp .v8-wave{filter:none!important}
+
+/* Mathside keeps a real greeting/message in this area. EduCore now also shows
+   the student's subject, class, and pending-work summary instead of empty space. */
+#studentApp .v212-hero-context{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:17px;
+  max-width:470px;
+}
+#studentApp .v212-hero-context span{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:5px 10px;
+  border:1px solid color-mix(in srgb,var(--subject-primary) 16%,var(--subject-line));
+  border-radius:999px;
+  background:rgba(255,255,255,.78);
+  color:var(--subject-dark);
+  box-shadow:0 4px 12px rgba(15,23,42,.045);
+  font-size:11px;
+  font-weight:750;
+  line-height:1;
+}
+#studentApp .v212-hero-context span:first-child{
+  background:var(--subject-primary);
+  border-color:var(--subject-primary);
+  color:#fff;
+}
+
+/* The artwork previously rose above the hero and sat under the bell/account.
+   Keep it fully inside the hero and leave the top bar visually independent. */
+#studentApp .v8-character{
+  width:340px!important;
+  height:305px!important;
+  right:150px!important;
+  bottom:-1px!important;
+  overflow:hidden!important;
+}
+#studentApp .v8-character img{object-position:center bottom!important}
+#studentApp .v8-encouragement{right:25px!important;top:52px!important}
+#studentApp .v8-topbar{z-index:12!important}
+#studentApp .v8-user-menu,#studentApp .v10-student-notification{z-index:13!important}
+
+@media(max-width:1300px) and (min-width:901px){
+  #studentApp .v8-character{width:285px!important;height:270px!important;right:112px!important}
+  #studentApp .v8-encouragement{right:15px!important;top:44px!important}
+  #studentApp .v212-hero-context{max-width:380px;margin-top:13px}
+  #studentApp .v212-hero-context span{font-size:10px;min-height:25px;padding:4px 8px}
+}
+
+@media(max-width:900px){
+  #studentApp .v8-hero{
+    background:
+      radial-gradient(circle at 76% 22%,color-mix(in srgb,var(--subject-secondary) 18%,white),transparent 29%),
+      linear-gradient(125deg,var(--subject-soft),color-mix(in srgb,var(--subject-primary) 9%,white) 58%,color-mix(in srgb,var(--subject-secondary) 15%,white))!important;
+  }
+  #studentApp .v8-hero h1{color:var(--subject-ink)!important}
+  #studentApp .v8-greeting-name{color:var(--subject-primary)!important}
+  #studentApp .v8-hero-copy p{color:color-mix(in srgb,var(--subject-ink) 76%,#64748b)!important}
+  #studentApp .v8-character{right:-20px!important;width:178px!important;height:178px!important;opacity:.82!important}
+  #studentApp .v212-hero-context{gap:5px;margin-top:11px;max-width:75%}
+  #studentApp .v212-hero-context span{min-height:23px;padding:4px 7px;font-size:8.5px}
+}
+
+@media(max-width:560px){
+  #studentApp .v8-hero-copy{max-width:76%!important}
+  #studentApp .v212-hero-context{max-width:90%;margin-top:9px}
+  #studentApp .v212-hero-context span:nth-child(2){max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #studentApp .v8-character{right:-36px!important;width:150px!important;height:152px!important;opacity:.70!important}
+}

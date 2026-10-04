@@ -1,0 +1,16 @@
+# Classside Edge Function configuration.
+# create-students is called by an authenticated teacher.
+[functions.create-students]
+verify_jwt = true
+
+[functions.delete-student]
+verify_jwt = true
+
+[functions.delete-assignment]
+verify_jwt = true
+
+[functions.reset-student-passwords]
+verify_jwt = true
+
+[functions.send-push-notification]
+verify_jwt = true

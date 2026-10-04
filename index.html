@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#ff6b00" name="theme-color"/>
+<meta content="yes" name="mobile-web-app-capable"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="EduCore" name="apple-mobile-web-app-title"/>
+<title>EduCore — Classroom</title>
+<meta content="An energetic classroom for teachers and students." name="description"/>
+<link href="assets/favicon-32.png?v=300" rel="icon" sizes="32x32" type="image/png"/>
+<link href="manifest.webmanifest" rel="manifest"/>
+<link href="icons/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="css/styles.css?v=12.2" rel="stylesheet"/>
+<link href="css/art-theme.css?v=7.0" rel="stylesheet"/>
+<link href="css/student-v8.css?v=10.5" rel="stylesheet"/>
+<link href="css/design-v9.css?v=9.1" rel="stylesheet"/>
+<link href="css/classroom-features.css?v=11.3" rel="stylesheet"/>
+<link href="css/archive-features.css?v=12.2" rel="stylesheet">
+<link href="css/layout-fixes.css?v=14.0" rel="stylesheet">
+<link href="css/work-types-v21.css?v=15.10" rel="stylesheet"/>
+<link href="assets/favicon.ico?v=300" rel="icon" sizes="any"/><link href="assets/favicon-32.png?v=300" rel="icon" sizes="32x32" type="image/png"/><link href="assets/favicon-180.png?v=300" rel="apple-touch-icon" sizes="180x180"/><link href="css/subject-themes.css?v=3.0" rel="stylesheet"/><link href="css/student-dashboard-v212.css?v=3.0" rel="stylesheet"/></head>
+<body>
+<div class="app-loading" hidden="" id="appLoading">
+<div class="loading-card">
+<div aria-hidden="true" class="loading-logo"><img alt="" src="assets/favicon-180.png?v=300"/></div>
+<div class="loading-orbit"><span></span><span></span><span></span></div>
+<h2 id="loadingTitle">Signing you in…</h2>
+<p id="loadingMessage">Preparing your EduCore classroom.</p>
+</div>
+</div>
+<div aria-live="polite" class="toast-area" id="toastArea"></div>
+<!-- PUBLIC LANDING -->
+<section id="publicSite">
+<header class="site-header">
+<div class="header-inner">
+<a class="logo" href="#home">
+<img alt="" aria-hidden="true" class="cap-logo" src="assets/favicon-180.png?v=300"/><span>EduCore</span>
+</a>
+<button aria-label="Open menu" class="menu-toggle icon-button" id="menuToggle">
+<svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+</button>
+<nav class="main-nav" id="mainNav">
+<a href="#home">Home</a>
+<a href="#how">How it works</a>
+<a href="#teacher">For Teachers</a>
+</nav>
+<div class="header-actions">
+<button class="btn btn-ghost" data-open-auth="signin">Log in</button>
+<button class="btn btn-orange" data-open-auth="signup">Teacher sign-up</button>
+</div>
+</div>
+</header>
+<main>
+<section class="hero" id="home">
+<div class="hero-grid">
+<div class="hero-copy">
+<p class="eyebrow">EVERY SUBJECT, ONE CLEAR CLASSROOM.</p><h1>Learn, create,<br/><span>grow.</span></h1>
+<p class="hero-lead">EduCore gives every subject its own identity while keeping the same simple workflow for classes, written works, performance tasks, submissions, grades, and feedback.</p>
+<div class="hero-buttons">
+<button class="btn btn-orange btn-large" data-open-auth="signup">Teacher sign-up <span aria-hidden="true">→</span></button>
+<button class="btn btn-light btn-large" data-open-auth="signin">Log in to EduCore</button>
+</div>
+</div>
+<div class="hero-visual subject-showcase" aria-hidden="true">
+<div class="subject-orbit-card english"><b>English</b><span>Read • Write • Express</span></div>
+<div class="subject-orbit-card science"><b>Science</b><span>Observe • Explore • Discover</span></div>
+<div class="subject-orbit-card filipino"><b>Filipino</b><span>Wika • Panitikan • Kultura</span></div>
+<div class="subject-orbit-card ap"><b>Araling Panlipunan</b><span>History • Society • Citizenship</span></div>
+<div class="subject-orbit-card mapeh"><b>MAPEH</b><span>Music • Arts • PE • Health</span></div>
+<div class="subject-orbit-center"><img alt="" src="assets/favicon-180.png?v=300"/><strong>EduCore</strong><small>Your subject. Your color.</small></div>
+</div>
+</div>
+</section>
+<section class="feature-band" id="how">
+<div class="section-heading">
+<p class="eyebrow">YOUR LEARNING LOOP</p>
+<h2>Simple enough to use.<br/>Energetic enough to enjoy.</h2>
+</div>
+<div aria-hidden="true" class="v9-hand-note">Small steps.<br/>Big progress.</div><div class="feature-grid">
+<article class="feature-card orange-card"><span>01</span><div aria-hidden="true" class="v9-card-art"><div class="v9-task-paper"><i></i><i></i><div>◒</div></div></div><h3>See the task.</h3><p>Students open written works, performance tasks, pictures, and instructions in one place.</p><button aria-label="Get started" class="v9-card-arrow" data-open-auth="signup">→</button></article>
+<article class="feature-card yellow-card"><span>02</span><div aria-hidden="true" class="v9-card-art"><div class="v9-answer-art"><b>Ready!</b><i>✓</i></div></div><h3>Show the answer.</h3><p>They type answers, upload work, and submit with a clear confirmation.</p><button aria-label="Get started" class="v9-card-arrow" data-open-auth="signup">→</button></article>
+<article class="feature-card pink-card"><span>03</span><div aria-hidden="true" class="v9-card-art"><div class="v9-checklist"><i>✓ <span></span></i><i>✓ <span></span></i><i></i></div></div><h3>Keep moving.</h3><p>Teachers review work while every class stays organized by its selected grade level.</p><button aria-label="Get started" class="v9-card-arrow" data-open-auth="signup">→</button></article>
+</div>
+</section>
+<section class="teacher-teaser" id="teacher">
+<div>
+<p class="eyebrow">FOR TEACHERS</p>
+<h2>Create the classes<br/>you <em>actually teach.</em></h2>
+<p>Create a class, choose its grade level, add learners, generate student login credentials, and post subject activities in one workspace.</p>
+<button class="btn btn-dark btn-large" data-open-auth="signin" data-role="teacher">Open teacher workspace <span aria-hidden="true">→</span></button>
+</div>
+<div class="class-preview">
+<button class="preview-class-card" data-open-auth="signin" data-role="teacher" type="button"><svg class="preview-icon" viewbox="0 0 24 24"><path d="M4 5.5h16v13H4zM8 5.5V3.5h8v2M8 10h8M8 14h5"></path></svg><div><b>Create a class</b><span>Name it and choose the grade.</span></div><span aria-hidden="true" class="v9-chevron">›</span></button>
+<button class="preview-class-card" data-open-auth="signin" data-role="teacher" type="button"><svg class="preview-icon" viewbox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8h4M19 6v4"></path></svg><div><b>Add students</b><span>Generate secure student accounts.</span></div><span aria-hidden="true" class="v9-chevron">›</span></button>
+<button class="preview-class-card" data-open-auth="signin" data-role="teacher" type="button"><svg class="preview-icon" viewbox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11h6M9 15h6"></path></svg><div><b>Post classwork</b><span>Questions, images, scores, and feedback.</span></div><span aria-hidden="true" class="v9-chevron">›</span></button>
+</div>
+</section>
+</main>
+</section>
+<!-- AUTH -->
+<dialog class="modal auth-modal" id="authDialog">
+<div class="modal-box auth-box">
+<button aria-label="Close" class="modal-close" data-close="authDialog">×</button>
+<div class="auth-logo"><img alt="" aria-hidden="true" class="cap-logo" src="assets/favicon-180.png?v=300"/><span>EduCore</span></div>
+<p class="eyebrow">WELCOME TO EDUCORE</p>
+<h2 id="authHeading">Log in</h2>
+<p class="muted" id="authCopy">Continue to your classroom.</p>
+<form class="form-stack" id="authForm">
+<label hidden="" id="nameField">Full name<input name="name" placeholder="Your name" type="text"/></label><label hidden="" id="subjectField">Subject<select id="subjectSelect" name="subject"><option value="English">English</option><option value="Filipino">Filipino</option><option value="Araling Panlipunan">Araling Panlipunan</option><option value="Science">Science</option><option value="ESP">ESP</option><option value="TLE">TLE</option><option value="MAPEH">MAPEH</option></select></label>
+<label>Email or student username<input name="email" placeholder="teacher@example.com or g9.santos.j" required="" type="text"/></label>
+<label>Password<div class="password-input-wrap"><input id="authPasswordInput" minlength="8" name="password" placeholder="At least 8 characters" required="" type="password"/><button aria-label="Show password" aria-pressed="false" class="password-eye-btn" id="toggleAuthPassword" type="button"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></label>
+<label hidden="" id="roleField">Account type
+          <select id="roleSelect" name="role">
+<option value="teacher">Teacher</option>
+<option value="student">Student</option>
+</select>
+</label>
+<button class="btn btn-orange btn-full" id="authSubmit" type="submit">Log in</button>
+</form>
+<button class="link-button" id="switchAuth">Teacher without an account? Sign up</button>
+<p class="tiny-note">Teacher accounts use email and password. Student accounts are generated securely by a teacher and sign in with their EduCore username.</p>
+</div>
+</dialog>
+<!-- TEACHER APP -->
+<section class="workspace" hidden="" id="teacherApp">
+<aside class="sidebar" id="teacherSidebar">
+<div class="sidebar-brand-row">
+<a class="sidebar-logo" href="#"><img alt="" aria-hidden="true" class="cap-logo" src="assets/favicon-180.png?v=300"/><span class="sidebar-brand-name">EduCore</span></a>
+<button aria-label="Close teacher menu" class="sidebar-close" id="teacherMenuClose" type="button">×</button>
+</div>
+<div class="teacher-mini">
+<div class="avatar">T</div>
+<div><b id="teacherName">Teacher</b><small id="teacherSubjectLabel">Teacher account</small></div>
+</div>
+<nav class="side-nav">
+<button class="side-link active" data-view="dashboard"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5V20h-6v-5h-4v5H4z"></path></svg><span>Dashboard</span></button>
+<button class="side-link" data-view="classes"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 5V3h8v2M8 10h8M8 14h5"></path></svg><span>Classes</span></button>
+<button class="side-link" data-view="assignments"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11h6M9 15h6"></path></svg><span>Written Works</span></button>
+<button class="side-link" data-view="performance"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg><span>Performance Tasks</span></button>
+<button class="side-link" data-view="submissions"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10M4 4h10M4 8h7"></path></svg><span>Submissions</span></button>
+</nav>
+<button class="side-link signout" id="teacherSignout"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg><span>Sign out</span></button>
+</aside>
+<button aria-label="Close teacher menu" class="teacher-sidebar-backdrop" id="teacherSidebarBackdrop" tabindex="-1" type="button"></button>
+<div class="workspace-main">
+<header class="workspace-topbar">
+<button aria-label="Open teacher menu" class="mobile-side-toggle icon-button" id="teacherMenuBtn"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+<div><p class="eyebrow">TEACHER WORKSPACE</p><h1 id="teacherPageTitle">Dashboard</h1></div>
+<button aria-label="Open notifications" class="v10-notification-button" id="teacherNotificationBtn" title="Notifications" type="button"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><span hidden="" id="teacherNotificationBadge">0</span></button>
+</header>
+<main class="workspace-content">
+<section class="app-view active" id="view-dashboard">
+<div class="welcome-panel energetic-panel">
+<div><p class="eyebrow">GOOD DAY, TEACHER!</p><h2>Ready for class?</h2><p>Create the classes you teach, choose each grade level, and keep students and Learning tasks together.</p></div>
+<div aria-hidden="true" class="welcome-mark"><svg viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 5V3h8v2M8 10h8M8 14h5"></path></svg></div>
+</div>
+<div class="stats-grid">
+<article><span class="stat-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8h4M19 6v4"></path></svg></span><b id="studentTotal">0</b><small>Students</small></article>
+<article><span class="stat-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 5V3h8v2M8 10h8M8 14h5"></path></svg></span><b id="classTotal">0</b><small>Classes</small></article>
+<article><span class="stat-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11h6M9 15h6"></path></svg></span><b id="assignmentTotal">0</b><small>Written Works</small></article>
+<article><span class="stat-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg></span><b id="performanceTotal">0</b><small>Performance Tasks</small></article>
+</div>
+<div class="section-row"><div><p class="eyebrow">MY CLASSES</p><p class="muted">Quick access to your classes</p></div><div class="row-actions"><button class="btn btn-light" data-go-view="classes">Manage classes</button><button class="btn btn-orange" id="dashboardCreateClass"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Create class</button></div></div>
+<div class="class-grid" id="dashboardClassGrid"></div>
+</section>
+<section class="app-view" id="view-classes">
+<div class="section-row"><div><p class="eyebrow">STUDENT ORGANIZATION</p><h2>Classes</h2><p class="muted">Create a class, choose its grade level, then add students to that class.</p></div><button class="btn btn-orange" id="createClassBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Create class</button></div>
+<div class="class-grid" id="classGrid"></div>
+</section>
+<section class="app-view" id="view-assignments">
+<div class="section-row"><div><p class="eyebrow">CLASSWORK</p><h2>Written Works</h2><p class="muted">Post question-based Learning activities to one or more classes.</p></div><button class="btn btn-orange" id="postAssignmentBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New activity</button></div>
+<div class="assignment-list" id="assignmentList"></div>
+</section>
+<section class="app-view" id="view-performance">
+<div class="section-row"><div><p class="eyebrow">PERFORMANCE TASK</p><h2>Performance Tasks</h2><p class="muted">Post project-based tasks with instructions, pictures, rubric, deadlines, reminders, and assigned sections.</p></div><button class="btn btn-orange" id="postPerformanceTaskBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New performance task</button></div>
+<div class="assignment-list" id="performanceTaskList"></div>
+</section>
+<section class="app-view" id="view-submissions">
+<div class="section-row"><div><p class="eyebrow">STUDENT WORK</p><h2>Submissions</h2><p class="muted">Choose a class, then review only the learners who submitted work.</p></div></div>
+<div aria-label="Submission category" class="submission-kind-tabs" id="submissionTypeTabs" role="tablist">
+<button class="submission-kind-tab active" data-submission-type="written_work" type="button">Written Works <span id="writtenSubmissionCount">0</span></button>
+<button class="submission-kind-tab" data-submission-type="performance_task" type="button">Performance Tasks <span id="performanceSubmissionCount">0</span></button>
+</div>
+<div class="submission-toolbar">
+<div><span class="field-label">Section</span><div class="submission-section-tabs" id="submissionSectionTabs"></div></div>
+<label class="submission-sort-field">Sort submissions
+              <select id="submissionSort">
+<option selected="" value="newest">Newest submitted</option>
+<option value="oldest">Oldest submitted</option>
+<option value="name">Student name A–Z</option>
+<option value="gender">Gender (Male first), then name</option>
+</select>
+</label>
+</div>
+<div class="submission-section-summary" id="submissionSectionSummary"></div>
+<div class="assignment-list" id="submissionList"></div>
+</section>
+</main>
+</div>
+</section>
+<!-- STUDENT APP -->
+<section class="v8-shell" data-avatar="neutral" hidden="" id="studentApp">
+<aside aria-label="Student navigation" class="v8-sidebar" id="studentMobileDrawer">
+<div class="v8-mobile-drawer-top">
+<a class="v8-brand" data-student-panel="overview" href="#"><img alt="" aria-hidden="true" class="v8-logo-icon" src="assets/favicon-180.png?v=300"/><span>EduCore</span></a>
+<button aria-label="Close student menu" class="v8-mobile-drawer-close" id="studentMenuClose" type="button">×</button>
+</div>
+<div aria-label="Student account and notifications" class="v8-mobile-tools" id="studentMobileTools"></div>
+<nav aria-label="Student workspace" class="v8-nav"><button class="v8-nav-link active" data-student-panel="overview" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h5v-7h4v7h5V9"></path></svg><span>Overview</span></button><button class="v8-nav-link" data-student-panel="activities" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5"></path></svg><span>Written Works</span></button><button class="v8-nav-link" data-student-panel="performance" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg><span>Performance Tasks</span></button><button class="v8-nav-link" data-student-panel="grades" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z"></path></svg><span>Grades &amp; Feedback</span></button><button class="v8-nav-link" data-student-panel="todo" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10M4 4h10M4 8h7"></path></svg><span>To-Do</span><span class="v10-nav-badge" hidden="" id="studentTodoNavBadge">0</span></button><button class="v8-nav-link" data-student-panel="calendar" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 2v6M17 2v6M3 11h18"></path></svg><span>Calendar</span></button><button class="v8-nav-link" data-student-panel="feedback" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M3 4h18v14H9l-5 4v-4H3zM7 8h10M7 12h7"></path></svg><span>Feedback Inbox</span><span class="v10-nav-badge" hidden="" id="studentFeedbackNavBadge">0</span></button><button class="v8-nav-link" data-student-panel="account" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M4 22v-3a8 8 0 0 1 16 0v3z"></path></svg><span>Account</span></button></nav><div aria-hidden="true" class="v8-sidebar-sketch"></div></aside>
+<button aria-label="Close student menu" class="v8-student-backdrop" hidden="" id="studentMenuBackdrop" type="button"></button>
+<div class="v8-workspace">
+<header class="v8-topbar"><div aria-hidden="true" class="v8-ribbon"></div><button aria-controls="studentMobileDrawer" aria-expanded="false" aria-label="Open student menu" class="v8-student-menu-toggle" id="studentMenuToggle" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button><button aria-label="Open notifications" class="v10-notification-button v10-student-notification" id="studentNotificationBtn" title="Notifications" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"></path></svg><span class="v8-mobile-notification-label">Notifications</span><span hidden="" id="studentNotificationBadge">0</span></button><button aria-label="Open my account" class="v8-user-menu" data-student-panel="account" type="button"><span aria-hidden="true" class="v8-avatar v8-header-avatar" data-v8-avatar="">ST</span><span><b id="studentWelcome">Student</b><small id="v8HeaderGrade">My classroom</small></span><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button></header>
+<main class="v8-main" id="studentMain" tabindex="-1">
+<section aria-label="Overview" class="student-panel-view active v8-overview" data-student-panel-view="overview">
+<div class="v8-hero"><div class="v8-hero-copy"><h1><span id="v8Greeting">Good morning,</span><br/><span class="v8-greeting-name" id="v8GreetingName">Student!</span> <span aria-hidden="true" class="v8-wave">👋</span></h1><p id="v212HeroMessage">Keep going! Every problem you solve<br/>brings you closer to your goals.</p><div aria-label="Class summary" class="v212-hero-context"><span id="v212HeroSubject">Your subject</span><span id="v212HeroClass">Your class</span><span id="v212HeroTodo">0 to do</span></div></div><div aria-hidden="true" class="v8-character"><img alt="" hidden="" id="v8HeroCharacter"/><div class="v8-neutral-hero"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m1 8 11-5 11 5-11 5zM5 11v7l7 4 7-4v-7M22 9v8"></path></svg><span>Let’s learn<br/>something new!</span></div></div><div aria-hidden="true" class="v8-encouragement">Small<br/>Progress<br/>Big Results!<span></span></div><span aria-hidden="true" class="v8-hero-sparks">✦</span></div>
+<section aria-label="Learning summary" class="v8-metrics"><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m12 2 3.1 6.3 7 .9-5 4.9 1.2 7L12 18l-6.3 3.1 1.2-7-5-4.9 7-.9z"></path></svg></span><div><h3>Average Grade</h3><strong data-v8-metric="average">—</strong><small data-v8-note="average"></small><span class="v8-micro" data-v8-detail="average"></span></div></article><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5"></path></svg></span><div><h3>Total Written Works</h3><strong data-v8-metric="total">—</strong><small data-v8-note="total"></small><span class="v8-micro" data-v8-detail="total"></span></div></article><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v3a5 5 0 0 0 5 5M17 5h4v3a5 5 0 0 1-5 5M12 14v6M7 22h10"></path></svg></span><div><h3>Highest Score</h3><strong data-v8-metric="highest">—</strong><small data-v8-note="highest"></small><span class="v8-micro" data-v8-detail="highest"></span></div></article></section>
+<section class="v8-upcoming v8-paper"><header class="v8-section-heading"><h2><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><rect height="17" rx="2" width="18" x="3" y="5"></rect><path d="M7 2v6M17 2v6M3 11h18M8 16l3 3 5-5"></path></svg>Upcoming Tasks</h2><button data-v8-action="view-tasks" type="button">View All</button></header><div id="v8UpcomingList"></div></section>
+</section>
+<section class="student-panel-view" data-student-panel-view="activities" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5"></path></svg></span><div><h1>Written Works</h1><p>Complete your activities and try your best!</p></div></header>
+<div aria-label="Filter activities by status" class="student-activity-tabs" role="group"><button class="student-filter active" data-student-filter="ongoing" type="button"><span>To do</span><strong data-student-filter-count="ongoing">0</strong></button><button class="student-filter" data-student-filter="submitted" type="button"><span>Submitted</span><strong data-student-filter-count="submitted">0</strong></button><button class="student-filter" data-student-filter="missed" type="button"><span>Missed</span><strong data-student-filter-count="missed">0</strong></button></div>
+<p aria-live="polite" class="v8-sr" id="studentTaskSummary"></p><div class="v8-activity-list" id="studentAssignmentList"></div>
+</section>
+<section class="student-panel-view" data-student-panel-view="performance" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg></span><div><h1>Performance Tasks</h1><p>View instructions, reference pictures and rubrics, then upload pictures of your output.</p></div></header>
+<div class="v8-activity-list" id="studentPerformanceList"></div>
+</section>
+<section class="student-panel-view" data-student-panel-view="grades" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z"></path></svg></span><div><h1>Grades &amp; Feedback</h1><p>See how you’re doing and read feedback from your teacher.</p></div></header>
+<section aria-label="Learning summary" class="v8-metrics"><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m12 2 3.1 6.3 7 .9-5 4.9 1.2 7L12 18l-6.3 3.1 1.2-7-5-4.9 7-.9z"></path></svg></span><div><h3>Average Grade</h3><strong data-v8-metric="average">—</strong><small data-v8-note="average"></small><span class="v8-micro" data-v8-detail="average"></span></div></article><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v3a5 5 0 0 0 5 5M17 5h4v3a5 5 0 0 1-5 5M12 14v6M7 22h10"></path></svg></span><div><h3>Highest Score</h3><strong data-v8-metric="highest">—</strong><small data-v8-note="highest"></small><span class="v8-micro" data-v8-detail="highest"></span></div></article><article class="v8-metric"><span class="v8-metric-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5"></path></svg></span><div><h3>Total Written Works</h3><strong data-v8-metric="total">—</strong><small data-v8-note="total"></small><span class="v8-micro" data-v8-detail="total"></span></div></article></section>
+<section class="v8-feedback v8-paper"><header class="v8-section-heading"><h2><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M3 4h18v14H9l-5 4v-4H3zM7 8h10M7 12h7"></path></svg>Recent Feedback</h2><span class="v8-sr" id="studentGradedCount">0 graded</span></header><div class="v8-feedback-list" id="studentGradeList"></div></section>
+</section>
+<section class="student-panel-view v10-student-feature" data-student-panel-view="todo" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10M4 4h10M4 8h7"></path></svg></span><div><h1>To-Do List</h1><p>Your unfinished work, arranged by what needs attention first.</p></div></header>
+<div class="v10-todo-summary" id="studentTodoSummary"></div><div class="v10-todo-list" id="studentTodoList"></div>
+</section>
+<section class="student-panel-view v10-student-feature" data-student-panel-view="calendar" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 2v6M17 2v6M3 11h18"></path></svg></span><div><h1>Student Calendar</h1><p>Highlighted days have deadlines. Tap a day to see the details below.</p></div></header>
+<section class="v10-calendar-card v8-paper"><div class="v10-calendar-head"><button aria-label="Previous month" class="v10-calendar-nav" id="calendarPrevBtn" type="button">‹</button><h2 id="calendarMonthLabel">Month</h2><button aria-label="Next month" class="v10-calendar-nav" id="calendarNextBtn" type="button">›</button></div><div class="v10-calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div class="v10-calendar-grid" id="studentCalendarGrid"></div></section><section class="v10-calendar-agenda v8-paper"><header class="v8-section-heading"><h2 id="studentCalendarAgendaTitle">Deadlines this month</h2><small>Tap a highlighted day to show only that day.</small></header><div id="studentCalendarAgenda"></div></section>
+</section>
+<section class="student-panel-view v10-student-feature" data-student-panel-view="feedback" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M3 4h18v14H9l-5 4v-4H3zM7 8h10M7 12h7"></path></svg></span><div><h1>Teacher Feedback Inbox</h1><p>All reviewed work and teacher comments in one place.</p></div></header>
+<div class="v10-feedback-inbox" id="studentFeedbackInbox"></div>
+</section>
+<section class="student-panel-view" data-student-panel-view="account" hidden="">
+<header class="v8-page-heading"><span class="v8-page-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M4 22v-3a8 8 0 0 1 16 0v3z"></path></svg></span><div><h1>Account</h1><p>Your student information.</p></div></header>
+<div class="v8-account-layout"><article class="v8-profile v8-paper"><div class="v8-profile-picture"><div aria-hidden="true" class="v8-avatar" data-v8-avatar="">ST</div></div><h2 id="studentAccountName">Student</h2><p>Student account</p><span class="v8-student-badge">STUDENT</span></article>
+<div class="v8-account-details v8-paper"><article><span class="v8-detail-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M4 22v-3a8 8 0 0 1 16 0v3z"></path></svg></span><div><span>Username</span><b id="studentAccountUsername">—</b></div><button aria-label="Copy username" class="v8-copy" data-v8-action="copy-username" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M9 7H5v15h11v-4M9 2h8l4 4v12H9zM17 2v5h4"></path></svg></button></article><article><span class="v8-detail-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="m1 8 11-5 11 5-11 5zM5 11v7l7 4 7-4v-7M22 9v8"></path></svg></span><div><span>Class</span><b id="studentAccountClass">—</b></div></article><article><span class="v8-detail-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M2 4c4-2 7-2 10 0 3-2 6-2 10 0v17c-4-2-7-2-10 0-3-2-6-2-10 0zM12 4v17"></path></svg></span><div><span>Grade Level</span><b id="studentAccountGrade">—</b></div></article><article><span class="v8-detail-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5"></path></svg></span><div><span>Subject</span><b id="studentAccountSubject">—</b></div></article><article><span class="v8-detail-icon"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M4 22v-3a8 8 0 0 1 16 0v3z"></path></svg></span><div><span>Gender</span><b id="studentAccountGender">Not specified</b></div></article></div>
+</div><div class="v8-account-footer"><p aria-live="polite" id="v8AccountStatus"></p><button class="v8-signout" id="studentSignout" type="button"><svg aria-hidden="true" class="v8-icon" viewbox="0 0 24 24"><path d="M10 4H4v16h6M13 8l4 4-4 4M8 12h13"></path></svg>Sign out</button></div>
+</section>
+</main>
+</div>
+<div hidden="" id="v8LegacyHooks"><div id="studentFirstName"></div><div id="studentHeroCopy"></div><div id="studentClassChip"></div><div id="studentGradeChip"></div><div id="studentInitials"></div><div id="studentAssignedCount"></div><div id="studentCompletedCount"></div><div id="studentTodoCount"></div><div id="studentAverageScore"></div><div id="studentProgressValue"></div><div id="studentProgressBar"></div><div id="studentProgressCopy"></div><div id="studentNextUpCard"></div><div id="studentNextUp"></div><div id="studentRecentFeedback"></div><div id="studentAccountInitials"></div></div>
+</section>
+<!-- CREATE CLASS MODAL -->
+<dialog class="modal" id="sectionModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="sectionModal">×</button>
+<p class="eyebrow">CREATE CLASS</p>
+<h2>New class</h2>
+<form class="form-stack" id="sectionForm">
+<label>Grade level
+          <select id="sectionGrade" name="grade_level" required="">
+<option value="7">Grade 7</option><option value="8">Grade 8</option><option value="9">Grade 9</option><option value="10">Grade 10</option><option value="11">Grade 11</option><option value="12">Grade 12</option>
+</select>
+</label>
+<label>Class name<input maxlength="60" name="name" placeholder="e.g. Beryl" required=""/></label>
+<label>Reuse students from another class <select id="importArchivedSection" name="import_archived_section"><option value="">No — start with an empty class</option></select><small class="field-help">Choose any of your existing classes. EduCore will keep the students’ accounts and enroll them in the new class too.</small></label>
+<div class="modal-actions"><button class="btn btn-light" data-close="sectionModal" type="button">Cancel</button><button class="btn btn-orange" type="submit">Create class</button></div>
+</form>
+</div>
+</dialog>
+<!-- ADD STUDENTS MODAL -->
+<dialog class="modal wide-modal" id="studentModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="studentModal">×</button>
+<p class="eyebrow">ADD STUDENTS</p>
+<h2 id="studentModalTitle">Class</h2>
+<p class="muted">Enter student names and gender, or import a DepEd SF1 / Excel class list. EduCore will generate a username and temporary password for each learner.</p>
+<div class="student-import-panel">
+<div class="student-import-copy">
+<strong>Import SF1 / Excel</strong>
+<span>Supports DepEd SF1 <b>.xls / .xlsx</b> and simple Excel lists with Name + Sex/Gender columns. Up to 60 learners.</span>
+</div>
+<button class="btn btn-light" id="importStudentsFileBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"></path></svg>Import file</button>
+<input accept=".xls,.xlsx,.csv" hidden="" id="studentsFileInput" type="file"/>
+</div>
+<div class="student-import-status-row">
+<span class="student-import-status" id="studentImportStatus">You can review imported learners before generating accounts.</span>
+<span class="student-entry-count" id="studentEntryCount">0 / 60</span>
+</div>
+<div class="student-table-wrap">
+<table class="student-entry-table">
+<thead><tr><th>#</th><th>Name</th><th>Gender</th><th></th></tr></thead>
+<tbody id="studentEntryBody"></tbody>
+</table>
+</div>
+<div class="modal-actions spaced">
+<button class="btn btn-light" id="addStudentRowBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Add row</button>
+<button class="btn btn-orange" id="saveStudentsBtn">Generate student accounts</button>
+</div>
+</div>
+</dialog>
+<!-- GENERATED ACCOUNTS MODAL -->
+<dialog class="modal wide-modal" id="accountsModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="accountsModal">×</button>
+<div class="success-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10"></path></svg></div>
+<p class="eyebrow">ACCOUNTS GENERATED</p>
+<h2>Student login credentials are ready.</h2>
+<p class="muted">Download a new Excel file and give each student only their own credentials.</p>
+<p class="account-note credential-warning">Temporary passwords are shown only when accounts are generated. EduCore does not store them for later download, so save the Excel file before closing if you need a copy.</p>
+<div class="student-table-wrap"><table class="student-entry-table"><thead><tr><th>Name</th><th>Gender</th><th>Username</th><th>Temporary password</th></tr></thead><tbody id="generatedAccountsBody"></tbody></table></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="accountsModal">Done</button><button class="btn btn-orange" id="downloadAccountsExcelBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"></path></svg>Download Excel</button></div>
+</div>
+</dialog>
+<!-- DELETE / REMOVE STUDENT MODAL -->
+<dialog class="modal" id="deleteStudentModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="deleteStudentModal">×</button>
+<p class="eyebrow">STUDENT MANAGEMENT</p>
+<h2 id="deleteStudentTitle">Student</h2>
+<p class="muted" id="deleteStudentClass">Class</p>
+<div class="student-account-summary"><span id="deleteStudentUsernameLabel">Username</span><b id="deleteStudentUsername">—</b></div>
+<div class="delete-choice">
+<h3>What do you want to delete?</h3>
+<p><b>Remove from class</b> removes only this class membership. The student keeps the EduCore login account.</p>
+<p><b>Delete account permanently</b> removes the student's login account, EduCore records, submitted work, and all student-uploaded files from Supabase Storage. This cannot be undone.</p>
+</div>
+<div class="modal-actions student-delete-actions">
+<button class="btn btn-light btn-danger-outline" id="removeStudentOnlyBtn" type="button">Remove from class</button>
+<button class="btn btn-danger" id="deleteStudentAccountBtn" type="button">Delete account permanently</button>
+</div>
+</div>
+</dialog>
+<!-- SECTION STUDENTS MODAL -->
+<dialog class="modal wide-modal" id="classStudentsModal">
+<div class="modal-box roster-modal-box">
+<button aria-label="Close" class="modal-close" data-close="classStudentsModal">×</button>
+<div class="roster-modal-heading">
+<div>
+<p class="eyebrow">CLASS ROSTER</p>
+<h2 id="classStudentsTitle">Students</h2>
+<p class="muted" id="classStudentsMeta">Search, review, and manage learners in this section.</p>
+</div>
+<div class="v10-roster-actions"><button class="btn btn-light" id="downloadRosterAccountsBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"></path></svg>Download accounts</button><button class="btn btn-light" id="exportClassRecordBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"></path></svg>Export class record</button><button class="btn btn-orange roster-add-students-btn" id="rosterAddStudentsBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Add students</button></div>
+</div>
+<div class="roster-controls">
+<label class="roster-search-field">Search student<input autocomplete="off" id="classStudentSearch" placeholder="Type a student name or username" type="search"/></label>
+<label>Arrange by<select id="classStudentSort"><option value="gender">Gender (Male first), then name</option><option value="name">Name A–Z</option></select></label>
+</div>
+<div class="bulk-toolbar student-bulk-toolbar roster-bulk-toolbar" id="studentBulkToolbar">
+<label class="bulk-select-all"><input class="row-check" id="selectAllStudents" type="checkbox"/><span>Select all shown</span></label>
+<span class="bulk-selected-count" id="selectedStudentCount">0 selected</span>
+<div class="bulk-actions">
+<button class="btn btn-light roster-reset-passwords-btn" disabled="" id="bulkResetPasswordsBtn" type="button">Reset passwords</button>
+<button class="btn btn-light btn-danger-outline" disabled="" id="bulkRemoveStudentsBtn" type="button">Remove selected</button>
+<button class="btn btn-danger" disabled="" id="bulkDeleteStudentsBtn" type="button">Delete selected accounts</button>
+</div>
+</div>
+<div class="roster-list" id="classStudentsList"></div>
+</div>
+</dialog>
+<!-- STUDENT TRACKING MODAL -->
+<dialog class="modal wide-modal" id="studentTrackingModal">
+<div class="modal-box student-tracking-box">
+<button aria-label="Close" class="modal-close" data-close="studentTrackingModal">×</button>
+<p class="eyebrow">STUDENT TRACKING</p>
+<h2 id="studentTrackingName">Student</h2>
+<p class="muted" id="studentTrackingMeta"></p>
+<div class="tracking-stats" id="studentTrackingStats"></div>
+<div class="student-tracking-head"><div><p class="eyebrow">SUBMISSION HISTORY</p><h3>Written Works in this section</h3></div></div>
+<div class="tracking-list" id="studentTrackingList"></div>
+</div>
+</dialog>
+<!-- ASSIGNMENT MODAL -->
+<dialog class="modal assignment-modal" id="assignmentModal">
+<div class="modal-box assignment-editor-box">
+<button aria-label="Close" class="modal-close" data-close="assignmentModal">×</button>
+<div class="assignment-editor-heading">
+<div>
+<p class="eyebrow" id="assignmentModalEyebrow">POST CLASSWORK</p>
+<h2 id="assignmentModalTitle">Create assignment</h2>
+<p class="muted" id="assignmentModalLead">Build the activity, choose the classes, then review the questions before posting.</p>
+</div>
+<span class="assignment-editor-badge">EDUCORE CLASSWORK</span>
+</div>
+<form class="form-stack assignment-editor-form" id="assignmentForm">
+<section class="assignment-form-section">
+<div class="assignment-form-section-head"><div><p class="eyebrow">01 • DETAILS</p><h3>Assignment details</h3></div><span>Required</span></div>
+<div class="assignment-heading-grid">
+<div class="assignment-main-fields">
+<label>Title<input name="title" placeholder="e.g. Reading Reflection" required=""/></label>
+<label>Instructions<textarea name="instructions" placeholder="Explain what students should do." rows="5"></textarea></label>
+</div>
+<div class="class-picker-field">
+<span class="field-label">Classes <small id="assignmentClassHint">Select one or more</small></span>
+<div aria-label="Choose classes" class="class-checklist" id="assignmentSectionChecklist" role="group"></div>
+</div>
+</div>
+</section>
+<div class="assignment-editor-split">
+<section class="assignment-form-section compact-section">
+<div class="assignment-form-section-head"><div><p class="eyebrow">02 • SCHEDULE</p><h3>Deadline &amp; reminder</h3></div></div>
+<div class="assignment-deadline-field">
+<label>Post assignment <small>Teacher chooses</small>
+<select id="assignmentPublishMode" name="publish_mode">
+<option value="now">Post immediately</option>
+<option value="schedule">Schedule for later</option>
+</select>
+</label>
+<label hidden="" id="assignmentPublishAtWrap">Publish date &amp; time <small>Automatic</small><input id="assignmentPublishAt" name="publish_at" type="datetime-local"/></label>
+<label>Deadline <small>Optional</small><input id="assignmentDueAt" name="due_at" type="datetime-local"/></label>
+<label>Student reminder <small>Optional</small>
+<select id="assignmentReminder" name="reminder_hours_before">
+<option value="0">No reminder</option>
+<option value="24">1 day before</option>
+<option value="48">2 days before</option>
+<option value="72">3 days before</option>
+</select>
+</label>
+<label class="v10-check-option"><input id="assignmentAllowResubmission" name="allow_resubmission" type="checkbox"/><span><b>Allow teacher-approved resubmission</b><small>Students can submit another attempt only after you allow it from their submission review.</small></span></label>
+<p class="muted">Scheduled activities stay hidden from students until the selected posting time. Deadline and reminder work normally after publication.</p>
+</div>
+</section>
+<section class="assignment-form-section compact-section">
+<div class="assignment-form-section-head"><div><p class="eyebrow">03 • MEDIA</p><h3>Assignment image</h3></div><span>Optional</span></div>
+<label class="file-drop assignment-file-drop">
+<input accept="image/*" id="assignmentImage" name="image" type="file">
+<span>Drop or choose an image for the activity.</span>
+<img alt="Assignment preview" hidden="" id="assignmentImagePreview">
+</img></input></label>
+</section>
+</div>
+<section class="assignment-import-panel">
+<div>
+<p class="eyebrow">EXCEL IMPORT</p>
+<h3>Prepare questions faster</h3>
+<p class="muted">Use the EduCore template to fill title, instructions, class names, questions, choices, answers, and points automatically.</p>
+</div>
+<div class="assignment-import-actions">
+<a class="btn btn-light" download="" href="downloads/EduCore-Assignment-Import-Template.xlsx">Download template</a>
+<button class="btn btn-dark" id="importAssignmentExcelBtn" type="button">Import Excel</button>
+<input accept=".xlsx,.xls" hidden="" id="assignmentExcelInput" type="file"/>
+</div>
+</section>
+<section class="assignment-form-section question-editor-section">
+<div class="question-builder-head"><div><p class="eyebrow">04 • QUESTIONS + ANSWERS</p><h3>Add questions</h3><p class="muted">Correct answers may be added now or later. Questions without an answer will not be auto-checked.</p></div><button class="btn btn-light" id="addQuestionBtn" type="button"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Add question</button></div>
+<div id="questionBuilder"></div>
+</section>
+<div class="modal-actions assignment-form-actions"><button class="btn btn-light" data-close="assignmentModal" type="button">Cancel</button><button class="btn btn-orange" id="assignmentSubmitBtn" type="submit">Post assignment</button></div>
+</form>
+</div>
+</dialog>
+
+<!-- MISSING ANSWER WARNING -->
+<dialog class="modal" id="missingAnswerModal">
+<div class="modal-box assignment-warning-box">
+<button class="modal-close" id="missingAnswerCloseBtn" type="button">×</button>
+<div class="warning-symbol">!</div>
+<p class="eyebrow">CHECK ANSWER KEY</p>
+<h2>Some questions have no correct answer.</h2>
+<p class="muted" id="missingAnswerText">You can still post the activity. Those questions will not be auto-checked until you edit the assignment and add their correct answers.</p>
+<div class="modal-actions missing-answer-actions">
+<button class="btn btn-light" id="continueEditingAssignmentBtn" type="button">Continue editing</button>
+<button class="btn btn-orange" id="proceedPostAssignmentBtn" type="button">Proceed posting</button>
+</div>
+</div>
+</dialog>
+<!-- PERFORMANCE TASK EDITOR -->
+<dialog class="modal assignment-modal" id="performanceTaskModal">
+<div class="modal-box assignment-editor-box performance-editor-box">
+<button aria-label="Close" class="modal-close" data-close="performanceTaskModal">×</button>
+<div class="assignment-editor-heading"><div><p class="eyebrow">PERFORMANCE TASK</p><h2 id="performanceTaskModalTitle">Create performance task</h2><p class="muted">Choose sections, add instructions and pictures, upload a rubric, and set the deadline.</p></div><span class="assignment-editor-badge">EDUCORE TASK</span></div>
+<form class="form-stack assignment-editor-form" id="performanceTaskForm">
+<section class="assignment-form-section"><div class="assignment-form-section-head"><div><p class="eyebrow">01 • DETAILS</p><h3>Task details</h3></div><span>Required</span></div><div class="assignment-heading-grid"><div class="assignment-main-fields"><label>Title<input name="title" placeholder="Performance task title" required=""/></label><label>Instructions<textarea name="instructions" placeholder="Explain the output, process, materials, format, and other directions." required="" rows="5"></textarea></label><label>Total points<input min="1" name="max_points" required="" step="1" type="number" value="100"/></label></div><label class="class-checklist-field"><span class="field-label">Classes <small>Select one or more</small></span><div aria-label="Choose classes for performance task" class="class-checklist" id="performanceSectionChecklist" role="group"></div></label></div></section>
+<section class="assignment-form-section performance-team-section"><div class="assignment-form-section-head"><div><p class="eyebrow">02 • WORK SETUP</p><h3>Individual, pair, or group</h3></div><span>Required</span></div>
+<div aria-label="Performance task work setup" class="performance-work-mode" id="performanceWorkMode" role="group">
+<label class="performance-mode-option"><input checked="" name="performance_mode" type="checkbox" value="individual"/><span><b>Individual</b><small>Each student submits their own output.</small></span></label>
+<label class="performance-mode-option"><input name="performance_mode" type="checkbox" value="pair"/><span><b>Pair</b><small>Students work in teams of two.</small></span></label>
+<label class="performance-mode-option"><input name="performance_mode" type="checkbox" value="group"/><span><b>Group</b><small>Students work in teacher-sized groups.</small></span></label>
+</div>
+<div class="performance-grouping-options" hidden="" id="performanceGroupingOptions">
+<div><p class="field-label">Who creates the teams?</p><div class="performance-creator-options"><label><input checked="" name="grouping_creator" type="radio" value="teacher"/><span>Teacher creates teams</span></label><label><input name="grouping_creator" type="radio" value="students"/><span>Students create their teams</span></label></div></div>
+<label hidden="" id="performanceGroupCountWrap">How many groups per class?<input id="performanceGroupCount" min="1" name="group_count" step="1" type="number" value="4"/><small>EduCore will distribute students as evenly as possible.</small></label>
+<div class="performance-grouping-tools" id="performanceTeacherGroupingTools"><button class="btn btn-light" id="generatePerformanceTeamsBtn" type="button">Generate team preview</button><p class="muted">Preview each class, then choose the leader for every pair or group before posting.</p></div>
+<div class="performance-team-preview" id="performanceTeamPreview"></div>
+</div>
+</section>
+<div class="assignment-editor-split"><section class="assignment-form-section compact-section"><div class="assignment-form-section-head"><div><p class="eyebrow">03 • SCHEDULE</p><h3>Posting, deadline &amp; reminder</h3></div></div><div class="assignment-deadline-field"><label>Post task <small>Teacher chooses</small><select id="performancePublishMode" name="publish_mode"><option value="now">Post now</option><option value="schedule">Schedule for later</option></select></label><label hidden="" id="performancePublishAtWrap">Publish date &amp; time <small>Automatic</small><input id="performancePublishAt" name="publish_at" type="datetime-local"/></label><label>Deadline <small>Optional</small><input name="due_at" type="datetime-local"/></label><label>Student reminder<select name="reminder_hours_before"><option value="0">No reminder</option><option value="24">1 day before</option><option value="48">2 days before</option><option value="72">3 days before</option></select></label><label class="v10-check-option"><input name="allow_resubmission" type="checkbox"/><span><b>Allow resubmission</b><small>Teacher still approves each new attempt.</small></span></label></div></section><section class="assignment-form-section compact-section"><div class="assignment-form-section-head"><div><p class="eyebrow">04 • TASK PICTURES</p><h3>Reference pictures</h3></div><span>Optional</span></div><label class="file-drop assignment-file-drop"><input accept="image/*" id="performanceImages" multiple="" name="task_images" type="file"/><span>Choose one or more pictures</span></label><div class="performance-image-preview" id="performanceImagePreview"></div><label class="v10-check-option" hidden="" id="removePerformanceImagesWrap"><input id="removePerformanceImages" type="checkbox"/><span><b>Remove existing pictures</b><small>Use this if the task no longer needs reference pictures.</small></span></label></section></div>
+<section class="assignment-form-section compact-section"><div class="assignment-form-section-head"><div><p class="eyebrow">05 • RUBRIC</p><h3>Rubric file or picture</h3></div><span>Optional</span></div><label class="file-drop assignment-file-drop"><input accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" id="performanceRubric" name="rubric" type="file"/><span>Upload a rubric picture, PDF, Word, or Excel file</span></label><div class="performance-rubric-existing" hidden="" id="performanceRubricExisting"></div><label class="v10-check-option" hidden="" id="removePerformanceRubricWrap"><input id="removePerformanceRubric" type="checkbox"/><span><b>Remove existing rubric</b><small>The task will be saved without the current rubric.</small></span></label></section>
+<div class="modal-actions assignment-form-actions"><button class="btn btn-light" data-close="performanceTaskModal" type="button">Cancel</button><button class="btn btn-orange" id="performanceTaskSubmitBtn" type="submit">Post performance task</button></div>
+</form>
+</div>
+</dialog>
+<!-- ASSIGNMENT PREVIEW MODAL -->
+<dialog class="modal assignment-preview-modal" id="assignmentPreviewModal">
+<div class="modal-box assignment-preview-box">
+<button aria-label="Close" class="modal-close" data-close="assignmentPreviewModal">×</button>
+<p class="eyebrow">ASSIGNMENT PREVIEW</p>
+<h2 id="assignmentPreviewTitle">Assignment</h2>
+<p class="assignment-preview-lead" id="assignmentPreviewInstructions"></p>
+<section class="assignment-preview-section assignment-preview-details">
+<div class="assignment-preview-section-head">
+<span class="assignment-preview-section-icon">i</span>
+<div><p class="eyebrow">DETAILS</p><h3>Activity information</h3></div>
+</div>
+<div class="assignment-preview-detail-grid" id="assignmentPreviewDetails"></div>
+</section>
+<section class="assignment-preview-section performance-preview-resources" hidden="" id="performancePreviewResources">
+<div class="assignment-preview-section-head"><span class="assignment-preview-section-icon">▣</span><div><p class="eyebrow">RESOURCES</p><h3>Task pictures &amp; rubric</h3></div></div>
+<div class="performance-preview-images" id="performancePreviewImages"></div>
+<div id="performancePreviewRubric"></div>
+<div class="performance-preview-team-manager" hidden="" id="performancePreviewTeamManager"></div>
+</section>
+<section class="assignment-preview-section assignment-preview-questions">
+<div class="assignment-preview-section-head">
+<span class="assignment-preview-section-icon">?</span>
+<div><p class="eyebrow">QUESTIONS</p><h3>Question set</h3></div>
+</div>
+<div class="assignment-preview-question-list" id="assignmentPreviewQuestions"></div>
+</section>
+<div class="modal-actions"><button class="btn btn-orange" data-close="assignmentPreviewModal" type="button">Close</button></div>
+</div>
+</dialog>
+<!-- DELETE ASSIGNMENT MODAL -->
+<dialog class="modal" id="deleteAssignmentModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="deleteAssignmentModal">×</button>
+<p class="eyebrow">DELETE ACTIVITY</p>
+<h2 id="deleteAssignmentTitle">Assignment</h2>
+<p class="muted" id="deleteAssignmentClass">Class</p>
+<div class="delete-choice">
+<h3>Permanently delete this activity?</h3>
+<p>This removes the assignment, its questions and answer keys, student submissions, and uploaded assignment/proof files from Supabase Storage. This cannot be undone.</p>
+</div>
+<div class="modal-actions">
+<button class="btn btn-light" data-close="deleteAssignmentModal" type="button">Cancel</button>
+<button class="btn btn-danger" id="confirmDeleteAssignmentBtn" type="button">Delete activity permanently</button>
+</div>
+</div>
+</dialog>
+<!-- STUDENT ANSWER MODAL -->
+<dialog class="modal assignment-modal" id="answerModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="answerModal">×</button>
+<p class="eyebrow">MY ANSWERS</p>
+<h2 id="answerAssignmentTitle">Assignment</h2>
+<p class="muted" id="answerInstructions"></p>
+<img alt="Assignment image" class="student-assignment-image" hidden="" id="studentAssignmentImage"/>
+<form id="answerForm">
+<div id="answerQuestions"></div>
+<label class="file-drop compact required-proof-drop">Upload work pictures <small>Required</small><input accept="image/*" id="studentSolutionImage" multiple="" required="" type="file"><span>Choose one or more clear photos of your written work before submitting.</span></input></label>
+<div class="v10-draft-status"><span id="studentDraftStatus">Draft saving is ready.</span><small>Typed and selected answers save automatically. Images upload only when you submit.</small></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="answerModal" type="button">Close &amp; continue later</button><button class="btn btn-orange" type="submit">Submit answers</button></div>
+</form>
+</div>
+</dialog>
+<!-- STUDENT PERFORMANCE TASK SUBMISSION -->
+<dialog class="modal assignment-modal" id="performanceSubmitModal">
+<div class="modal-box performance-submit-box">
+<button aria-label="Close" class="modal-close" data-close="performanceSubmitModal">×</button>
+<p class="eyebrow">PERFORMANCE TASK</p><h2 id="performanceStudentTitle">Performance Task</h2><p class="muted" id="performanceStudentInstructions"></p><div class="assignment-meta" id="performanceStudentMeta"></div><div class="performance-preview-images" id="performanceStudentPictures"></div><div class="performance-student-rubric" id="performanceStudentRubric"></div>
+<section class="performance-team-panel" hidden="" id="performanceTeamPanel"></section>
+<section class="performance-team-builder" hidden="" id="performanceStudentTeamBuilder"></section>
+<form class="form-stack" id="performanceSubmitForm"><label class="file-drop compact performance-output-upload">Upload pictures of your output<input accept="image/*" id="performanceOutputImages" multiple="" type="file"/><span>Choose one or more clear pictures</span></label><p class="muted" id="performanceOutputHint">At least one picture is required for your first submission.</p><section class="performance-participation-ratings" hidden="" id="performanceParticipationRatings"></section><div class="modal-actions"><button class="btn btn-light" data-close="performanceSubmitModal" type="button">Close</button><button class="btn btn-orange" type="submit">Submit performance task</button></div></form>
+</div>
+</dialog>
+<!-- REVIEW SUBMISSION MODAL -->
+<dialog class="modal assignment-modal" id="reviewSubmissionModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="reviewSubmissionModal">×</button>
+<p class="eyebrow">REVIEW SUBMISSION</p>
+<h2 id="reviewSubmissionTitle">Activity title</h2>
+<p class="review-submission-student" id="reviewSubmissionStudentName">Student name</p>
+<p class="muted" id="reviewSubmissionMeta"></p>
+<div id="reviewSubmissionAnswers"></div>
+<div class="manual-review-summary" hidden="" id="manualReviewSummary">
+<div><span>Manual review score</span><b id="manualReviewScore">0 / 0</b></div>
+<small>Changing any answer checkbox makes the recomputed manual-review score the teacher score.</small>
+</div>
+<section class="review-performance-team-info" hidden="" id="reviewPerformanceTeamInfo"></section>
+<div class="proof-wrap" hidden="" id="reviewProofWrap">
+<p class="eyebrow" id="reviewProofLabel">WORK PICTURES</p>
+<div class="proof-link-grid" id="reviewProofLinks"></div>
+<a class="btn btn-light" hidden="" id="reviewProofLink" rel="noopener" target="_blank">Open uploaded work</a>
+</div>
+<form class="form-stack grade-form" id="gradeForm">
+<div class="grading-input-row">
+<label class="grading-score-field">Teacher score
+            <input id="teacherScoreInput" min="0" name="teacher_score" placeholder="Leave blank to use auto-check score" step="0.01" type="number">
+</input></label>
+<div class="feedback-tools grading-quick-field">
+<label class="feedback-preset-label">Quick feedback
+              <select class="feedback-preset-select" id="teacherFeedbackPreset">
+<option value="">Choose a ready-made feedback…</option>
+<option value="Excellent work! Keep it up.">Excellent work! Keep it up.</option>
+<option value="Great job. Your work is clear and accurate.">Great job. Your work is clear and accurate.</option>
+<option value="Good effort. Review the parts you missed and try again.">Good effort. Review the parts you missed and try again.</option>
+<option value="Nice improvement. Keep practicing this skill.">Nice improvement. Keep practicing this skill.</option>
+<option value="Please review your computation and check your final answer.">Please review your computation and check your final answer.</option>
+<option value="Show the complete work or process next time.">Show the complete work or process next time.</option>
+<option value="Your answer is correct, but explain your work more clearly.">Your answer is correct, but explain your work more clearly.</option>
+<option value="Please submit a clearer work image or proof of work.">Please submit a clearer work image or proof of work.</option>
+</select>
+</label>
+<p class="feedback-preset-help">Pick one, then edit it if needed.</p>
+</div>
+<label class="grading-feedback-field">Feedback
+            <textarea id="teacherFeedbackInput" name="feedback" placeholder="Write feedback for the student" rows="3"></textarea>
+</label>
+</div>
+<div class="modal-actions grade-modal-actions"><button class="btn btn-danger-outline" id="clearSubmissionBtn" type="button">Clear submission</button><button class="btn btn-light" data-close="reviewSubmissionModal" type="button">Cancel</button><div class="grade-primary-actions"><button class="btn btn-light allow-resubmit-btn" hidden="" id="allowResubmissionBtn" type="button">Allow student to submit again</button><button class="btn btn-orange save-grade-btn" type="submit">Save grade</button></div></div>
+</form>
+</div>
+</dialog>
+<!-- RESUBMISSION CONFIRMATION MODAL -->
+<dialog class="modal resubmission-confirm-modal" id="resubmissionConfirmModal">
+<div class="modal-box resubmission-confirm-box">
+<button aria-label="Close" class="modal-close" data-close="resubmissionConfirmModal">×</button>
+<div aria-hidden="true" class="resubmission-confirm-icon">↻</div>
+<p class="eyebrow">ALLOW ANOTHER ATTEMPT</p>
+<h2>Allow this student to resubmit?</h2>
+<p class="resubmission-confirm-text" id="resubmissionConfirmText"></p>
+<div class="resubmission-warning-box">
+<b>Important</b>
+<span>The current submission stays visible until the student sends the new attempt. After resubmission, the previous answers and manual score are replaced.</span>
+</div>
+<div class="modal-actions">
+<button class="btn btn-light" data-close="resubmissionConfirmModal" type="button">Cancel</button>
+<button class="btn btn-orange" id="confirmAllowResubmissionBtn" type="button">Allow one new attempt</button>
+</div>
+</div>
+</dialog>
+<!-- ARCHIVE ACTIVITY CONFIRMATION -->
+<dialog class="modal" id="archiveAssignmentModal">
+<div class="modal-box archive-confirm-box">
+<button aria-label="Close" class="modal-close" data-close="archiveAssignmentModal">×</button>
+<div aria-hidden="true" class="archive-confirm-icon">⇩</div>
+<p class="eyebrow">ARCHIVE ACTIVITY</p>
+<h2 id="archiveAssignmentTitle">Archive this activity?</h2>
+<p class="muted" id="archiveAssignmentText"></p>
+<div class="archive-warning"><b>Before archiving</b><span>EduCore will download an Excel archive containing the activity summary, student submissions, scores, and answer details. Students can still view the archived activity, but they cannot upload or submit anything to it.</span></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="archiveAssignmentModal" type="button">Cancel</button><button class="btn btn-orange" id="confirmArchiveAssignmentBtn" type="button">Download Excel &amp; archive</button></div>
+</div>
+</dialog>
+<!-- CLEAR SUBMISSION CONFIRMATION -->
+<dialog class="modal" id="clearSubmissionModal">
+<div class="modal-box archive-confirm-box">
+<button aria-label="Close" class="modal-close" data-close="clearSubmissionModal">×</button>
+<div aria-hidden="true" class="archive-confirm-icon danger">!</div>
+<p class="eyebrow">CLEAR STUDENT SUBMISSION</p>
+<h2>Clear this submission?</h2>
+<p class="muted" id="clearSubmissionText"></p>
+<div class="archive-warning danger"><b>This removes the current response</b><span>The student’s submitted answers, score, feedback, and uploaded work image will be cleared. The activity itself is not deleted, so the student can submit again if the activity is still open.</span></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="clearSubmissionModal" type="button">Cancel</button><button class="btn btn-danger" id="confirmClearSubmissionBtn" type="button">Clear submission</button></div>
+</div>
+</dialog>
+<!-- ARCHIVE CLASS CONFIRMATION -->
+<dialog class="modal" id="archiveClassModal">
+<div class="modal-box archive-confirm-box">
+<button aria-label="Close" class="modal-close" data-close="archiveClassModal">×</button>
+<div aria-hidden="true" class="archive-confirm-icon danger">⌂</div>
+<p class="eyebrow">END OF TERM</p>
+<h2 id="archiveClassTitle">Archive this class?</h2>
+<p class="muted" id="archiveClassText"></p>
+<div class="archive-warning danger"><b>Important — activities will be removed</b><span>EduCore will first download an Excel archive. After that, every activity and its submission records for this class will be deleted from EduCore. Students will keep their accounts and remain listed in the archived class so you can import them into a new class without creating new accounts.</span></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="archiveClassModal" type="button">Cancel</button><button class="btn btn-danger" id="confirmArchiveClassBtn" type="button">Download archive &amp; end class</button></div>
+</div>
+</dialog>
+<!-- STUDENT RESPONSE PREVIEW MODAL -->
+<dialog class="modal assignment-modal" id="studentResponseModal">
+<div class="modal-box">
+<button aria-label="Close" class="modal-close" data-close="studentResponseModal">×</button>
+<p class="eyebrow">MY SUBMITTED RESPONSE</p>
+<h2 id="studentResponseTitle">Activity response</h2>
+<p class="muted" id="studentResponseMeta"></p>
+<div class="student-response-score-banner" id="studentResponseScore"></div>
+<div class="student-response-answers" id="studentResponseAnswers"></div>
+<div class="proof-wrap" hidden="" id="studentResponseProofWrap">
+<p class="eyebrow" id="studentResponseProofLabel">MY WORK PICTURES</p>
+<div class="proof-link-grid" id="studentResponseProofLinks"></div>
+<a class="btn btn-light" hidden="" id="studentResponseProofLink" rel="noopener" target="_blank">Open my uploaded work</a>
+</div>
+<div class="student-response-feedback" hidden="" id="studentResponseFeedback"></div>
+<div class="modal-actions"><button class="btn btn-orange" data-close="studentResponseModal" type="button">Close</button></div>
+</div>
+</dialog>
+<!-- PERSISTENT MESSAGE POPUP: closes only when the user clicks Close -->
+<dialog class="modal message-modal" id="messageDialog">
+<div class="modal-box message-box">
+<div aria-hidden="true" class="message-icon" id="messageIcon"></div>
+<p class="eyebrow" id="messageEyebrow">EDUCORE</p>
+<h2 id="messageTitle">Message</h2>
+<p class="message-text" id="messageText"></p>
+<div class="modal-actions"><button class="btn btn-orange" id="messageCloseBtn" type="button">Close</button></div>
+</div>
+</dialog>
+<script src="js/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="js/app.js?v=15.6"></script>
+<script src="js/student-v8.js?v=15.0"></script>
+<script src="js/classroom-features.js?v=15.1"></script>
+<script src="js/design-v9.js?v=9"></script>
+<script src="js/pwa.js?v=6.9.15"></script>
+<script src="js/push-notifications.js?v=6.9"></script>
+<script src="js/archive-features.js?v=15.3"></script>
+<script src="js/work-types-v21.js?v=15.7"></script>
+</body>
+</html>

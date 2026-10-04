@@ -1,0 +1,726 @@
+/* EduCore V1.2 — per-subject visual identity and Mathside color cleanup. */
+:root{
+  --subject-primary:#4f46e5;
+  --subject-secondary:#8b5cf6;
+  --subject-dark:#312e81;
+  --subject-soft:#eef2ff;
+  --subject-soft-2:#ddd6fe;
+  --subject-ink:#0f172a;
+  --subject-muted:#64748b;
+  --subject-line:#e2e8f0;
+  --subject-surface:#ffffff;
+
+  /* Remap legacy Mathside variables so older components inherit the subject palette. */
+  --orange:var(--subject-primary);
+  --orange-2:var(--subject-secondary);
+  --orange-soft:var(--subject-soft-2);
+  --orange-pale:var(--subject-soft);
+  --ink:var(--subject-ink);
+  --muted:var(--subject-muted);
+  --cream:#f8fafc;
+  --paper:#ffffff;
+  --line:var(--subject-line);
+  --shadow:0 12px 30px rgba(15,23,42,.08);
+}
+:root[data-subject="general"]{--subject-primary:#4f46e5;--subject-secondary:#8b5cf6;--subject-dark:#312e81;--subject-soft:#eef2ff;--subject-soft-2:#ddd6fe}
+:root[data-subject="english"]{--subject-primary:#2563eb;--subject-secondary:#60a5fa;--subject-dark:#1e3a8a;--subject-soft:#eff6ff;--subject-soft-2:#dbeafe}
+:root[data-subject="filipino"]{--subject-primary:#dc2626;--subject-secondary:#f87171;--subject-dark:#7f1d1d;--subject-soft:#fef2f2;--subject-soft-2:#fee2e2}
+:root[data-subject="araling-panlipunan"]{--subject-primary:#ca8a04;--subject-secondary:#facc15;--subject-dark:#3f3f21;--subject-soft:#fefce8;--subject-soft-2:#fef3c7}
+:root[data-subject="science"]{--subject-primary:#16a34a;--subject-secondary:#4ade80;--subject-dark:#14532d;--subject-soft:#f0fdf4;--subject-soft-2:#dcfce7}
+:root[data-subject="esp"]{--subject-primary:#7c3aed;--subject-secondary:#a78bfa;--subject-dark:#4c1d95;--subject-soft:#f5f3ff;--subject-soft-2:#ede9fe}
+:root[data-subject="tle"]{--subject-primary:#0891b2;--subject-secondary:#22d3ee;--subject-dark:#164e63;--subject-soft:#ecfeff;--subject-soft-2:#cffafe}
+:root[data-subject="mapeh"]{--subject-primary:#db2777;--subject-secondary:#f472b6;--subject-dark:#831843;--subject-soft:#fdf2f8;--subject-soft-2:#fce7f3}
+
+/* ---------- Global / public ---------- */
+html,body{color:var(--subject-ink)}
+body{background:#f8fafc}
+body::before{background:linear-gradient(145deg,var(--subject-soft),#fff 52%,var(--subject-soft-2))!important}
+.site-header{background:rgba(255,255,255,.94)!important;border-color:var(--subject-line)!important}
+.logo,.sidebar-logo,.main-nav a{color:var(--subject-ink)!important}
+.main-nav a:hover,.main-nav a.v9-current,.eyebrow,.auth-logo span,.link-button{color:var(--subject-primary)!important}
+.btn-orange{background:linear-gradient(110deg,var(--subject-primary),var(--subject-secondary))!important;border:1px solid color-mix(in srgb,var(--subject-primary) 55%,white)!important;color:#fff!important;box-shadow:0 9px 20px color-mix(in srgb,var(--subject-primary) 20%,transparent)!important}
+.btn-orange:hover{filter:brightness(1.04);box-shadow:0 12px 26px color-mix(in srgb,var(--subject-primary) 25%,transparent)!important}
+.btn-light,.btn-ghost{background:#fff!important;border-color:var(--subject-line)!important;color:var(--subject-ink)!important}
+.btn-light:hover,.btn-ghost:hover{background:var(--subject-soft)!important;border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;color:var(--subject-primary)!important}
+.btn-dark{background:#172033!important;color:#fff!important}
+.btn-dark:hover{background:#0f172a!important}
+
+#publicSite .hero{background:radial-gradient(circle at 8% 8%,color-mix(in srgb,var(--subject-primary) 14%,white) 0 120px,transparent 121px),radial-gradient(circle at 95% 82%,color-mix(in srgb,var(--subject-secondary) 16%,white) 0 95px,transparent 96px),#fbfdff!important}
+#publicSite .hero h1{color:var(--subject-ink)!important;-webkit-text-stroke:0!important;text-shadow:none!important}
+#publicSite .hero h1 span{color:var(--subject-primary)!important}
+#publicSite .hero h1 span::after{border-color:var(--subject-primary)!important}
+#publicSite .hero-lead{color:#475569!important;text-shadow:none!important;background:transparent!important}
+#publicSite .feature-band{background:#172033!important;background-image:none!important;color:#fff!important}
+#publicSite .feature-band .eyebrow{color:color-mix(in srgb,var(--subject-secondary) 70%,white)!important}
+#publicSite .feature-card{border-color:rgba(255,255,255,.22)!important;box-shadow:none!important}
+#publicSite .orange-card{background:#dbeafe!important;color:#0f172a!important}
+#publicSite .yellow-card{background:#dcfce7!important;color:#0f172a!important}
+#publicSite .pink-card{background:#fce7f3!important;color:#0f172a!important}
+#publicSite .feature-card p{color:#475569!important}
+#publicSite .feature-card>span{color:var(--subject-primary)!important}
+#publicSite .teacher-teaser{background-image:none!important}
+#publicSite .preview-icon{color:var(--subject-primary)!important;stroke:var(--subject-primary)!important}
+#publicSite .v9-chevron{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#publicSite .v9-card-arrow{background:var(--subject-primary)!important;color:#fff!important}
+.v9-formula,.math-board,.equation,.orange-pencil,.motivation-formula{display:none!important}
+
+/* Subject showcase on the public page. */
+.subject-showcase{min-height:500px!important;position:relative;display:block!important}
+.subject-orbit-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:190px;height:190px;border-radius:38px;background:white;border:1px solid var(--subject-line);box-shadow:0 28px 55px rgba(30,41,59,.12);display:grid;place-items:center;align-content:center;gap:8px;z-index:3;text-align:center}
+.subject-orbit-center img{width:70px}.subject-orbit-center strong{font-size:25px;color:var(--subject-ink)}.subject-orbit-center small{font-size:12px;color:var(--subject-muted)}
+.subject-orbit-card{position:absolute;width:180px;min-height:86px;padding:16px;border-radius:18px;background:#fff;border:1px solid var(--subject-line);box-shadow:0 15px 30px rgba(30,41,59,.09);display:grid;gap:5px;transform:rotate(-3deg)}
+.subject-orbit-card b{font-size:16px;color:var(--subject-ink)}.subject-orbit-card span{font-size:11px;color:var(--subject-muted);line-height:1.35}
+.subject-orbit-card::before{content:'';width:34px;height:7px;border-radius:99px;background:var(--chip);margin-bottom:5px}
+.subject-orbit-card.english{--chip:#2563eb;left:2%;top:10%}.subject-orbit-card.science{--chip:#16a34a;right:1%;top:7%;transform:rotate(4deg)}.subject-orbit-card.filipino{--chip:#dc2626;left:0;bottom:12%;transform:rotate(3deg)}.subject-orbit-card.ap{--chip:#ca8a04;right:1%;bottom:10%;transform:rotate(-4deg)}.subject-orbit-card.mapeh{--chip:#db2777;left:50%;bottom:-1%;transform:translateX(-50%) rotate(1deg)}
+.subject-help{display:block;margin-top:6px;font-size:11px;color:var(--subject-muted);line-height:1.35}
+
+/* Auth, dialogs and forms: neutral paper + subject accent. */
+.modal::backdrop{background:rgba(15,23,42,.52)!important}
+.modal-box{background:#fff!important;border-color:var(--subject-line)!important;box-shadow:0 25px 70px rgba(15,23,42,.20)!important;color:var(--subject-ink)!important}
+.modal-close{background:var(--subject-soft)!important;color:var(--subject-dark)!important}
+.modal-close:hover{background:var(--subject-soft-2)!important;color:var(--subject-primary)!important}
+input,select,textarea,.feedback-preset-select{background:#fff!important;border-color:#cbd5e1!important;color:var(--subject-ink)!important}
+input:focus,select:focus,textarea:focus,.feedback-preset-select:focus{border-color:var(--subject-primary)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--subject-primary) 15%,transparent)!important;outline:none!important}
+.tiny-note,.muted{color:var(--subject-muted)!important}
+.app-loading{background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--subject-secondary) 30%,white),var(--subject-primary))!important}
+.loading-card p{color:rgba(255,255,255,.88)!important}
+.toast{background:#fff!important;border-color:var(--subject-line)!important;box-shadow:0 14px 34px rgba(15,23,42,.15)!important}
+.toast.orange{border-left-color:var(--subject-primary)!important}
+
+/* ---------- Teacher workspace ---------- */
+#teacherApp{background:#f8fafc!important;color:var(--subject-ink)!important}
+#teacherApp .sidebar{background:linear-gradient(165deg,var(--subject-dark),color-mix(in srgb,var(--subject-dark) 78%,#0f172a))!important;color:#fff!important}
+#teacherApp .sidebar-logo{color:#fff!important}
+#teacherApp .teacher-mini{background:color-mix(in srgb,var(--subject-primary) 18%,white)!important;border:1px solid color-mix(in srgb,var(--subject-primary) 20%,white)!important;box-shadow:none!important}
+#teacherApp .teacher-mini .avatar{background:linear-gradient(135deg,var(--subject-primary),var(--subject-secondary))!important;color:#fff!important}
+#teacherApp .teacher-mini b{color:var(--subject-dark)!important}
+#teacherApp .teacher-mini small{color:color-mix(in srgb,var(--subject-dark) 70%,#475569)!important}
+#teacherApp .side-link{color:rgba(255,255,255,.88)!important}
+#teacherApp .side-link:hover{background:rgba(255,255,255,.12)!important;color:#fff!important}
+#teacherApp .side-link.active{background:var(--subject-primary)!important;color:#fff!important;box-shadow:0 8px 18px color-mix(in srgb,var(--subject-primary) 25%,transparent)!important}
+#teacherApp .signout{background:rgba(255,255,255,.08)!important;color:#fff!important}
+#teacherApp .signout:hover{background:rgba(255,255,255,.15)!important}
+#teacherApp .workspace-main{background:#f8fafc!important}
+#teacherApp .workspace-topbar{background:rgba(255,255,255,.96)!important;border-color:var(--subject-line)!important;color:var(--subject-ink)!important}
+#teacherApp .workspace-content{color:var(--subject-ink)!important}
+#teacherApp .mobile-side-toggle{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#teacherApp .mobile-side-toggle:hover{background:var(--subject-soft-2)!important}
+#teacherApp .welcome-panel,#teacherApp .energetic-panel{background:linear-gradient(125deg,var(--subject-primary),var(--subject-secondary))!important;color:#fff!important;box-shadow:0 18px 38px color-mix(in srgb,var(--subject-primary) 20%,transparent)!important}
+#teacherApp .welcome-panel .eyebrow,#teacherApp .welcome-panel p{color:rgba(255,255,255,.90)!important}
+#teacherApp .v9-empty{background:var(--subject-soft)!important;background-image:none!important;border-color:color-mix(in srgb,var(--subject-primary) 20%,white)!important}
+#teacherApp .v9-empty-icon{background:var(--subject-soft-2)!important}#teacherApp .v9-empty-icon svg{stroke:var(--subject-primary)!important}
+#teacherApp .stat-icon,#teacherApp .class-icon,#teacherApp .submission-status-icon,#teacherApp .assignment-preview-section-icon{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#teacherApp .stat-icon svg,#teacherApp .class-icon svg{stroke:var(--subject-primary)!important}
+#teacherApp .grade-detail,#teacherApp .student-table-wrap,#teacherApp .assignment-card,#teacherApp .assignment-preview-section,#teacherApp .submission-card,#teacherApp .class-card{background:#fff!important;border-color:var(--subject-line)!important;box-shadow:0 8px 22px rgba(15,23,42,.06)!important;color:var(--subject-ink)!important}
+#teacherApp .student-entry-table th{background:var(--subject-soft)!important;color:var(--subject-dark)!important}
+#teacherApp .assignment-thumb,#teacherApp .meta-chip,#teacherApp .assignment-class-list span{background:var(--subject-soft)!important;color:var(--subject-dark)!important;border-color:color-mix(in srgb,var(--subject-primary) 18%,white)!important}
+#teacherApp .assignment-editor-badge,#teacherApp .assignment-group-count,#teacherApp .assignment-preview-question-head>span{background:var(--subject-primary)!important;color:#fff!important}
+#teacherApp .assignment-preview-details,#teacherApp .assignment-preview-question-card,#teacherApp .submission-meta-grid>span{background:#f8fafc!important;border-color:var(--subject-line)!important}
+#teacherApp .assignment-preview-detail-grid span,#teacherApp .submission-meta-grid small{color:var(--subject-muted)!important}
+#teacherApp .assignment-preview-detail-grid b,#teacherApp .submission-meta-grid b{color:var(--subject-ink)!important}
+#teacherApp .file-drop{background:var(--subject-soft)!important;border-color:color-mix(in srgb,var(--subject-primary) 45%,white)!important}
+#teacherApp .section-row .eyebrow,#teacherApp .workspace-content>.eyebrow{color:var(--subject-primary)!important}
+#teacherApp .table-remove{background:#fff1f2!important;color:#be123c!important}
+#teacherApp .btn-student-signout{border-color:var(--subject-line)!important;color:var(--subject-ink)!important;background:#fff!important}
+#teacherApp .btn-student-signout:hover{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+
+/* Generic legacy teacher elements outside #teacherApp still obey subject accent. */
+.assignment-editor-badge,.assignment-group-count{background:var(--subject-primary)!important;color:#fff!important}
+.assignment-class-list span,.meta-chip{background:var(--subject-soft)!important;color:var(--subject-dark)!important;border-color:color-mix(in srgb,var(--subject-primary) 18%,white)!important}
+.assignment-preview-section-icon,.submission-status-icon{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+.feedback-preset-select:focus{border-color:var(--subject-primary)!important}
+
+/* ---------- Student workspace ---------- */
+body.v8-student-active{background:linear-gradient(135deg,var(--subject-soft),#f8fafc 55%,var(--subject-soft-2))!important;color:var(--subject-ink)!important}
+body.v8-student-active::before{background:radial-gradient(ellipse at 20% 25%,var(--subject-soft-2) 0 12%,transparent 45%),radial-gradient(ellipse at 84% 65%,var(--subject-soft),transparent 42%),linear-gradient(125deg,var(--subject-soft),#fff 60%,var(--subject-soft-2))!important}
+body.v8-student-active::after{display:none!important}
+#studentApp.v8-shell{--v8-orange:var(--subject-primary)!important;--v8-ink:var(--subject-ink)!important;--v8-muted:var(--subject-muted)!important;background:#fff!important;border-color:rgba(255,255,255,.9)!important;box-shadow:0 18px 38px rgba(15,23,42,.10)!important;color:var(--subject-ink)!important}
+#studentApp .v8-sidebar{background:linear-gradient(165deg,var(--subject-dark),color-mix(in srgb,var(--subject-dark) 76%,#0f172a))!important;border-radius:23px 18px 0 23px!important}
+#studentApp .v8-brand{color:#fff!important}
+#studentApp .v8-nav-link{color:rgba(255,255,255,.84)!important}
+#studentApp .v8-nav-link.active{background:var(--subject-primary)!important;color:#fff!important;border-color:color-mix(in srgb,var(--subject-primary) 65%,white)!important;box-shadow:0 7px 15px color-mix(in srgb,var(--subject-primary) 25%,transparent)!important}
+#studentApp .v8-nav-link:not(.active):hover{background:rgba(255,255,255,.12)!important;color:#fff!important}
+#studentApp .v8-sidebar-sketch{display:none!important}
+#studentApp .v8-workspace{background:linear-gradient(180deg,#fff,#f8fafc)!important}
+#studentApp .v8-ribbon,#studentApp .v8-topbar{background:linear-gradient(90deg,var(--subject-soft-2),var(--subject-soft))!important}
+#studentApp .v8-user-menu{background:#fff!important;color:var(--subject-ink)!important;border:1px solid color-mix(in srgb,var(--subject-primary) 16%,var(--subject-line))!important;box-shadow:0 5px 14px rgba(15,23,42,.08)!important}
+#studentApp .v8-user-menu b{color:var(--subject-ink)!important}
+#studentApp .v8-user-menu small,#studentApp .v8-user-menu>.v8-icon{color:var(--subject-muted)!important}
+#studentApp .v8-avatar{background:linear-gradient(145deg,var(--subject-soft),var(--subject-soft-2))!important;color:var(--subject-dark)!important;border:1px solid color-mix(in srgb,var(--subject-primary) 18%,white)!important}
+#studentApp .v8-hero{background:linear-gradient(130deg,var(--subject-primary),var(--subject-secondary))!important;background-image:none!important}
+#studentApp .v8-hero h1,#studentApp .v8-greeting-name{color:#fff!important}
+#studentApp .v8-hero-copy p{color:rgba(255,255,255,.9)!important}
+#studentApp .v8-hero::after{background:radial-gradient(circle at 70% 30%,rgba(255,255,255,.22),transparent 55%)!important}
+#studentApp .v8-encouragement{background:#fff!important;border-color:rgba(255,255,255,.55)!important;color:var(--subject-ink)!important;box-shadow:0 8px 24px rgba(15,23,42,.12)!important}
+#studentApp .v8-encouragement::after{border-top-color:#fff!important}
+#studentApp .v8-encouragement span{border-top-color:var(--subject-primary)!important}
+#studentApp .v8-hero-sparks{color:rgba(255,255,255,.75)!important}
+#studentApp .v8-neutral-hero{color:var(--subject-primary)!important}
+#studentApp .v8-neutral-hero .v8-icon{fill:var(--subject-soft-2)!important;stroke:var(--subject-primary)!important}
+#studentApp .v8-metric,#studentApp .v8-paper,#studentApp .v8-filters,#studentApp .v8-profile,#studentApp .v8-account-details,#studentApp .v8-account-details>article{background:#fff!important;border-color:var(--subject-line)!important;box-shadow:0 5px 14px rgba(15,23,42,.06)!important;color:var(--subject-ink)!important}
+#studentApp .v8-metric-icon,#studentApp .v8-page-icon,#studentApp .v8-detail-icon,#studentApp .v8-task-icon{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#studentApp .v8-metric-icon>.v8-icon{fill:var(--subject-primary)!important;stroke:var(--subject-primary)!important}
+#studentApp .v8-section-heading{border-color:var(--subject-line)!important}
+#studentApp .v8-section-heading .v8-icon,#studentApp .v8-section-heading button{color:var(--subject-primary)!important}
+#studentApp .v8-task-icon>.v8-icon{fill:currentColor!important;stroke:#fff!important}
+#studentApp .v8-student-badge,#studentApp .student-filter.active,#studentApp .v8-view-button{background:var(--subject-primary)!important;color:#fff!important;border-color:var(--subject-primary)!important}
+#studentApp .student-filter:not(.active):hover{background:var(--subject-soft)!important;color:var(--subject-primary)!important;border-color:color-mix(in srgb,var(--subject-primary) 25%,var(--subject-line))!important}
+#studentApp .v8-resubmit,#studentApp .v8-more-feedback{background:var(--subject-soft)!important;color:var(--subject-primary)!important;border-color:color-mix(in srgb,var(--subject-primary) 20%,white)!important}
+#studentApp .v8-copy{color:var(--subject-primary)!important}
+#studentApp .v8-signout{background:var(--subject-dark)!important;color:#fff!important;border-color:var(--subject-dark)!important}
+#studentApp .v8-signout:hover{filter:brightness(1.08)}
+#studentApp button:focus-visible,#studentApp a:focus-visible,#studentApp input:focus-visible,#studentApp select:focus-visible,#studentApp summary:focus-visible{outline-color:var(--subject-primary)!important}
+#studentApp .v8-skip{color:var(--subject-primary)!important}
+.art-hero::after,.art-motivation::after{display:none!important}.art-hero{background-image:none!important}.art-motivation{background:linear-gradient(100deg,var(--subject-primary),var(--subject-secondary))!important}
+
+/* Hover colors now follow the subject instead of old orange/brown Mathside tones. */
+@media (hover:hover) and (pointer:fine){
+  #studentApp .v8-metric:hover,
+  #studentApp .v8-paper:hover,
+  #studentApp .v8-filters:hover,
+  #studentApp .v8-profile:hover,
+  #studentApp .v8-account-details:hover,
+  #studentApp .v8-user-menu:hover{
+    border-color:color-mix(in srgb,var(--subject-primary) 38%,var(--subject-line))!important;
+    box-shadow:0 18px 38px color-mix(in srgb,var(--subject-primary) 12%,transparent)!important;
+  }
+  #studentApp .v8-activity-row:hover,
+  #studentApp .v8-feedback-row:hover,
+  #studentApp .v8-account-details>article:hover{
+    border-color:color-mix(in srgb,var(--subject-primary) 32%,var(--subject-line))!important;
+    background:var(--subject-soft)!important;
+    box-shadow:0 12px 26px color-mix(in srgb,var(--subject-primary) 10%,transparent)!important;
+  }
+}
+
+/* Prevent old mobile orange header overrides from showing through. */
+@media(max-width:760px){
+  #studentApp .v8-topbar{background:linear-gradient(90deg,var(--subject-soft-2),var(--subject-soft))!important}
+  .subject-showcase{min-height:420px!important}.subject-orbit-card{width:145px}.subject-orbit-center{width:155px;height:155px}.subject-orbit-center img{width:56px}.subject-orbit-card.mapeh{bottom:0}
+}
+@media(max-width:520px){.subject-showcase{min-height:360px!important}.subject-orbit-card{width:125px;padding:12px;min-height:72px}.subject-orbit-card b{font-size:13px}.subject-orbit-card span{font-size:9px}.subject-orbit-center{width:130px;height:130px;border-radius:28px}.subject-orbit-center strong{font-size:20px}.subject-orbit-center small{font-size:10px}.subject-orbit-card.mapeh{display:none}}
+
+/* Additional legacy component cleanup. */
+.sidebar-brand-mark,.student-brand-mark,#teacherApp .v9-brand-tile{background:linear-gradient(135deg,var(--subject-primary),var(--subject-secondary))!important;color:#fff!important;box-shadow:0 7px 18px color-mix(in srgb,var(--subject-primary) 22%,transparent)!important}
+#teacherApp .workspace-topbar .eyebrow{color:var(--subject-primary)!important}
+.section-card:hover,.section-card.active{border-color:var(--subject-primary)!important;box-shadow:0 12px 26px color-mix(in srgb,var(--subject-primary) 14%,transparent)!important}
+.proof-wrap a{color:var(--subject-primary)!important}
+.assignment-card.is-selected{border-color:color-mix(in srgb,var(--subject-primary) 58%,white)!important;box-shadow:0 14px 34px color-mix(in srgb,var(--subject-primary) 16%,transparent),inset 0 0 0 1px color-mix(in srgb,var(--subject-primary) 20%,transparent)!important}
+.editing-class-option{background:var(--subject-soft)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--subject-primary) 35%,white)!important}
+.student-gender-group td{background:var(--subject-soft)!important;color:var(--subject-dark)!important;border-color:color-mix(in srgb,var(--subject-primary) 16%,var(--subject-line))!important}
+.deadline-chip:not(.meta-overdue):not(.no-deadline){background:var(--subject-soft)!important;color:var(--subject-dark)!important;border-color:color-mix(in srgb,var(--subject-primary) 18%,white)!important}
+#studentApp .v8-status:not(.in-progress):not(.upcoming):not(.submitted):not(.graded){background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#studentApp .v8-upcoming-row:hover .v8-task-title b{color:var(--subject-primary)!important}
+#studentApp .v8-page-icon{background:var(--subject-primary)!important;color:#fff!important;box-shadow:0 5px 14px color-mix(in srgb,var(--subject-primary) 18%,transparent)!important}
+#studentApp .v8-page-icon .v8-icon{stroke:#fff!important;color:#fff!important}
+#studentApp [data-student-panel-view="grades"] .v8-page-icon .v8-icon,#studentApp [data-student-panel-view="account"] .v8-page-icon .v8-icon{fill:#fff!important;stroke:#fff!important}
+
+
+/* ========================================================================== 
+   EduCore V1.3 — full subject-theme sweep
+   Removes remaining Mathside orange/brown residues from teacher + student UI.
+   ========================================================================== */
+
+/* Make the subject identity unmistakable but keep neutral text readable. */
+:root[data-subject="english"]{--subject-primary:#2563eb;--subject-secondary:#60a5fa;--subject-dark:#1e3a8a;--subject-soft:#eff6ff;--subject-soft-2:#dbeafe}
+:root[data-subject="filipino"]{--subject-primary:#b91c1c;--subject-secondary:#fb7185;--subject-dark:#7f1d1d;--subject-soft:#fef2f2;--subject-soft-2:#fee2e2}
+:root[data-subject="araling-panlipunan"]{--subject-primary:#a16207;--subject-secondary:#eab308;--subject-dark:#713f12;--subject-soft:#fffbeb;--subject-soft-2:#fef3c7}
+:root[data-subject="science"]{--subject-primary:#16a34a;--subject-secondary:#4ade80;--subject-dark:#14532d;--subject-soft:#f0fdf4;--subject-soft-2:#dcfce7}
+:root[data-subject="esp"]{--subject-primary:#7c3aed;--subject-secondary:#a78bfa;--subject-dark:#4c1d95;--subject-soft:#f5f3ff;--subject-soft-2:#ede9fe}
+:root[data-subject="tle"]{--subject-primary:#0891b2;--subject-secondary:#22d3ee;--subject-dark:#164e63;--subject-soft:#ecfeff;--subject-soft-2:#cffafe}
+:root[data-subject="mapeh"]{--subject-primary:#db2777;--subject-secondary:#f472b6;--subject-dark:#831843;--subject-soft:#fdf2f8;--subject-soft-2:#fce7f3}
+
+/* Dynamic inline cap logo. */
+.cap-logo,.v8-logo-icon{color:var(--subject-primary)}
+#teacherApp .sidebar-logo .cap-logo,#studentApp .v8-brand .v8-logo-icon{color:var(--subject-secondary)!important}
+.auth-logo .cap-logo,.loading-logo .cap-logo{color:var(--subject-primary)!important}
+
+/* Teacher: dashboard hero / cards. */
+#teacherApp .welcome-panel{
+  background:linear-gradient(125deg,var(--subject-primary),var(--subject-secondary))!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 35%,white)!important;
+  color:#fff!important;
+}
+#teacherApp .welcome-panel h2,
+#teacherApp .welcome-panel .eyebrow,
+#teacherApp .welcome-panel p:not(.eyebrow){color:#fff!important}
+#teacherApp .welcome-mark{
+  border-color:rgba(255,255,255,.48)!important;
+  background:rgba(255,255,255,.14)!important;
+}
+#teacherApp .stats-grid article{
+  border-color:var(--subject-line)!important;
+  background:#fff!important;
+  box-shadow:0 8px 22px rgba(15,23,42,.06)!important;
+}
+#teacherApp .stat-icon{
+  background:var(--subject-soft)!important;
+  color:var(--subject-primary)!important;
+}
+#teacherApp .stat-icon svg{stroke:var(--subject-primary)!important}
+
+/* Teacher: class cards — remove orange labels, pills, borders and hover residue. */
+#teacherApp .class-card{
+  border-color:var(--subject-line)!important;
+  box-shadow:0 8px 22px rgba(15,23,42,.06)!important;
+}
+#teacherApp .class-card:hover{
+  border-color:color-mix(in srgb,var(--subject-primary) 38%,var(--subject-line))!important;
+  box-shadow:0 16px 34px color-mix(in srgb,var(--subject-primary) 12%,transparent)!important;
+}
+#teacherApp .class-icon{
+  background:var(--subject-soft)!important;
+  color:var(--subject-primary)!important;
+}
+#teacherApp .class-icon svg{stroke:var(--subject-primary)!important}
+#teacherApp .class-card small{
+  color:var(--subject-primary)!important;
+}
+#teacherApp .grade-pill{
+  background:var(--subject-soft)!important;
+  color:var(--subject-dark)!important;
+  border:1px solid color-mix(in srgb,var(--subject-primary) 18%,white)!important;
+}
+#teacherApp .class-card footer{color:var(--subject-muted)!important}
+#teacherApp .class-card footer b{color:var(--subject-ink)!important}
+#teacherApp .class-view-students-btn{
+  background:#fff!important;
+  border-color:var(--subject-line)!important;
+  color:var(--subject-ink)!important;
+}
+#teacherApp .class-view-students-btn:hover{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;
+  color:var(--subject-primary)!important;
+}
+
+/* Teacher: empty states — arrows/icons were still orange. */
+#teacherApp .v9-empty{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important;
+  color:var(--subject-ink)!important;
+}
+#teacherApp .v9-empty-icon{
+  background:linear-gradient(135deg,#fff,var(--subject-soft-2))!important;
+  border-color:#fff!important;
+}
+#teacherApp .v9-empty-icon::before{color:var(--subject-primary)!important}
+#teacherApp .v9-empty-icon svg{stroke:var(--subject-primary)!important}
+#teacherApp .v9-empty p{color:var(--subject-muted)!important}
+
+/* Teacher: submissions — remove dark-brown active tab and orange counters. */
+#teacherApp .submission-section-tab{
+  background:#fff!important;
+  border-color:var(--subject-line)!important;
+  color:var(--subject-ink)!important;
+  box-shadow:0 4px 12px rgba(15,23,42,.05)!important;
+}
+#teacherApp .submission-section-tab:hover{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;
+}
+#teacherApp .submission-section-tab small{color:var(--subject-muted)!important}
+#teacherApp .submission-section-tab span{
+  background:var(--subject-soft-2)!important;
+  color:var(--subject-primary)!important;
+}
+#teacherApp .submission-section-tab.active{
+  background:var(--subject-dark)!important;
+  color:#fff!important;
+  border-color:var(--subject-dark)!important;
+  box-shadow:0 8px 18px color-mix(in srgb,var(--subject-primary) 20%,transparent)!important;
+}
+#teacherApp .submission-section-tab.active small{color:rgba(255,255,255,.78)!important}
+#teacherApp .submission-section-tab.active span{
+  background:var(--subject-primary)!important;
+  color:#fff!important;
+}
+#teacherApp .submission-sort-field{color:var(--subject-muted)!important}
+#teacherApp .submission-sort-field select{
+  background:#fff!important;
+  border-color:var(--subject-line)!important;
+  color:var(--subject-ink)!important;
+}
+#teacherApp .submission-section-summary span{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important;
+  color:var(--subject-dark)!important;
+}
+
+/* Teacher: older controls still carrying cream/brown colors. */
+#teacherApp .btn-light,
+#teacherApp .btn-ghost{
+  background:#fff!important;
+  border-color:var(--subject-line)!important;
+  color:var(--subject-ink)!important;
+}
+#teacherApp .btn-light:hover,
+#teacherApp .btn-ghost:hover{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;
+  color:var(--subject-primary)!important;
+}
+#teacherApp .sidebar-close{
+  background:color-mix(in srgb,var(--subject-primary) 28%,var(--subject-dark))!important;
+  color:#fff!important;
+}
+#teacherApp .teacher-sidebar-backdrop.open{background:rgba(15,23,42,.42)!important}
+#teacherApp .class-checklist,
+#teacherApp .assignment-import-panel,
+#teacherApp .question-card,
+#teacherApp .option-row,
+#teacherApp .student-table-wrap{
+  background:#fff!important;
+  border-color:var(--subject-line)!important;
+}
+#teacherApp .class-check-option:hover{background:var(--subject-soft)!important}
+#teacherApp .class-check-option:has(input:checked){
+  background:var(--subject-soft)!important;
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--subject-primary) 35%,white)!important;
+}
+#teacherApp .class-check-option input{accent-color:var(--subject-primary)!important}
+
+/* Generic chips, labels and focus states in teacher dialogs. */
+#teacherApp .field-label,
+#teacherApp .modal-box label{color:var(--subject-ink)!important}
+#teacherApp input:focus,
+#teacherApp select:focus,
+#teacherApp textarea:focus{border-color:var(--subject-primary)!important}
+#teacherApp .assignment-editor-badge,
+#teacherApp .assignment-group-count,
+#teacherApp .assignment-preview-question-head>span{background:var(--subject-primary)!important;color:#fff!important}
+
+/* Notification icon formerly named “orange” now follows the subject. */
+.message-orange .message-icon{
+  background:var(--subject-soft)!important;
+  color:var(--subject-primary)!important;
+}
+.message-box{color:var(--subject-ink)!important}
+.message-text{color:var(--subject-muted)!important}
+
+/* Student: remove any remaining orange from avatar, status, borders and hover. */
+#studentApp .v8-avatar>.v8-icon{color:var(--subject-primary)!important}
+#studentApp .v8-task-title b,
+#studentApp .v8-feedback-row b,
+#studentApp .v8-account-details b{color:var(--subject-ink)!important}
+#studentApp .v8-activity-row,
+#studentApp .v8-feedback-row,
+#studentApp .v8-upcoming-row{border-color:var(--subject-line)!important}
+#studentApp .v8-status.in-progress,
+#studentApp .v8-status.upcoming{
+  background:var(--subject-soft)!important;
+  color:var(--subject-dark)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important;
+}
+
+/* The visible application brand follows the logged-in subject. */
+#teacherApp .sidebar-brand-name,
+#studentApp .v8-brand span{color:#fff!important}
+#teacherApp .sidebar-logo:hover .cap-logo,
+#studentApp .v8-brand:hover .v8-logo-icon{color:#fff!important}
+
+/* Keep public/non-authenticated EduCore neutral until a subject is known. */
+:root[data-subject="general"] #publicSite .logo .cap-logo,
+:root[data-subject="general"] .auth-logo .cap-logo{color:#4f46e5!important}
+
+
+/* ===== EduCore V1.3.1 — logo loading hardening ===== */
+.cap-logo, .v8-logo-icon {
+  display:block!important;
+  flex:0 0 auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+  overflow:visible!important;
+}
+#publicSite .logo .cap-logo{width:43px!important;height:34px!important;}
+.auth-logo .cap-logo{width:43px!important;height:34px!important;}
+#teacherApp .sidebar-logo .cap-logo{width:39px!important;height:32px!important;}
+#studentApp .v8-brand .v8-logo-icon{width:39px!important;height:32px!important;}
+.loading-logo .cap-logo{width:76px!important;height:59px!important;}
+
+/* ========================================================================== 
+   EduCore V2.0 — Mathside feature parity without Mathside orange/brown residue
+   Loaded last so every new workflow control follows the active subject theme.
+   ========================================================================== */
+:root{
+  --v10-line:var(--subject-line)!important;
+  --v10-soft:var(--subject-soft)!important;
+  --v10-ink:var(--subject-ink)!important;
+  --v10-muted:var(--subject-muted)!important;
+  --v104-card-border:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important;
+  --v104-card-shadow:0 10px 26px rgba(15,23,42,.10),0 2px 6px rgba(15,23,42,.04)!important;
+  --v104-card-shadow-hover:0 16px 36px color-mix(in srgb,var(--subject-primary) 13%,transparent),0 3px 8px rgba(15,23,42,.06)!important;
+}
+
+/* New V10/V11 classroom controls */
+.v10-nav-badge{color:var(--subject-primary)!important;box-shadow:0 2px 8px rgba(15,23,42,.08)!important}
+.v10-notification-button{border-color:var(--subject-line)!important;color:var(--subject-primary)!important;background:#fff!important;box-shadow:0 8px 22px rgba(15,23,42,.06)!important}
+.v10-notification-button:hover{border-color:color-mix(in srgb,var(--subject-primary) 35%,var(--subject-line))!important;box-shadow:0 12px 28px color-mix(in srgb,var(--subject-primary) 14%,transparent)!important}
+.v10-student-notification{color:var(--subject-primary)!important;background:var(--subject-soft)!important;border-color:color-mix(in srgb,var(--subject-primary) 20%,var(--subject-line))!important}
+.v10-check-option,.v10-todo-card,.v10-feedback-card,.v10-calendar-card,.v10-calendar-agenda,.v10-notification-row{border-color:var(--subject-line)!important}
+.v10-check-option input{accent-color:var(--subject-primary)!important}
+.v10-draft-status,.v10-todo-check,.v10-due-chip.today,.v10-due-chip.soon{background:var(--subject-soft)!important;color:var(--subject-dark)!important;border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important}
+.v10-todo-copy>span,.v10-calendar-nav,.v10-calendar-day small,.v10-agenda-status,.v10-feedback-main>span,.v10-notification-kind{color:var(--subject-primary)!important}
+.v10-calendar-day i{background:var(--subject-primary)!important}
+.v10-calendar-day.is-today{background:var(--subject-soft)!important;outline-color:color-mix(in srgb,var(--subject-primary) 60%,white)!important}
+.v10-calendar-day:hover,.v10-todo-card:hover,.v10-feedback-card:hover{border-color:color-mix(in srgb,var(--subject-primary) 36%,var(--subject-line))!important;box-shadow:0 13px 30px color-mix(in srgb,var(--subject-primary) 10%,transparent)!important}
+
+/* Roster management controls inherit the active subject instead of orange. */
+#classStudentsModal .v10-roster-tools-toggle{
+  border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;
+  background:var(--subject-soft)!important;
+  color:var(--subject-dark)!important;
+  box-shadow:0 4px 12px rgba(15,23,42,.07)!important;
+}
+#classStudentsModal .v10-roster-tools-toggle:hover,
+#classStudentsModal .v10-roster-tools-toggle[aria-expanded="true"]{background:var(--subject-soft-2)!important;color:var(--subject-primary)!important}
+#classStudentsModal .v10-roster-management-tools{background:#fff!important;border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important}
+#classStudentsModal .roster-reset-passwords-btn{border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;color:var(--subject-dark)!important;background:var(--subject-soft)!important}
+#classStudentsModal .roster-reset-passwords-btn:hover:not(:disabled){background:var(--subject-soft-2)!important;color:var(--subject-primary)!important}
+#classStudentsModal .roster-student-card{background:#fff!important;border-color:var(--subject-line)!important;box-shadow:0 6px 18px rgba(15,23,42,.055)!important}
+#classStudentsModal .roster-student-card:hover{box-shadow:0 10px 24px color-mix(in srgb,var(--subject-primary) 10%,transparent)!important}
+#classStudentsModal .roster-avatar{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+
+/* Keep new card-depth treatment neutral and subject-aware. */
+#teacherApp .stats-grid article,#teacherApp .class-card,#teacherApp .assignment-card,#teacherApp .class-detail,#teacherApp .section-card,#teacherApp .tracking-assignment-card,#teacherApp .submission-card,#teacherApp .question-block,#teacherApp .class-checklist,#teacherApp .proof-wrap,
+#studentApp .student-workspace-panel,#studentApp .student-account-card,#studentApp .student-task-card,#studentApp .assignment-card,#studentApp .student-next-content,#studentApp .student-feedback-card,#studentApp .student-stat-card,#studentApp .v10-todo-card,#studentApp .v10-calendar-card,#studentApp .v10-feedback-card{
+  border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important;
+  box-shadow:var(--v104-card-shadow)!important;
+}
+
+/* Student mobile portal: subject identity only, no Mathside formula/equation wallpaper. */
+@media(max-width:900px){
+  body.v8-student-active{
+    background:linear-gradient(145deg,var(--subject-soft),#f8fafc 58%,var(--subject-soft-2))!important;
+  }
+  body.v8-student-active::before,
+  body.v8-student-active::after{display:none!important;background:none!important}
+  #studentApp.v8-shell{background:#f8fafc!important}
+  #studentApp .v8-workspace{background:linear-gradient(180deg,#fff 0%,#f8fafc 68%,var(--subject-soft) 100%)!important}
+  #studentApp .v8-workspace::before{background:radial-gradient(circle at 8% 16%,color-mix(in srgb,var(--subject-primary) 7%,transparent),transparent 26%),radial-gradient(circle at 92% 56%,color-mix(in srgb,var(--subject-secondary) 7%,transparent),transparent 25%)!important}
+  #studentApp .v8-topbar{background:rgba(255,255,255,.97)!important;border-color:color-mix(in srgb,var(--subject-primary) 16%,var(--subject-line))!important;box-shadow:0 5px 15px rgba(15,23,42,.06)!important}
+  #studentApp .v8-sidebar{background:linear-gradient(165deg,var(--subject-dark),color-mix(in srgb,var(--subject-dark) 80%,#0f172a))!important;box-shadow:18px 0 42px rgba(15,23,42,.24)!important}
+  #studentApp .v8-mobile-drawer-top{border-color:rgba(255,255,255,.14)!important}
+  #studentApp .v8-mobile-drawer-close{border-color:rgba(255,255,255,.20)!important;background:rgba(255,255,255,.10)!important;color:#fff!important}
+  #studentApp .v8-mobile-tools{border-color:rgba(255,255,255,.14)!important}
+  #studentApp .v8-mobile-tools .v8-user-menu{background:rgba(255,255,255,.96)!important;border-color:rgba(255,255,255,.22)!important;box-shadow:none!important}
+  #studentApp .v8-mobile-tools .v10-student-notification{background:rgba(255,255,255,.10)!important;border-color:rgba(255,255,255,.18)!important;color:#fff!important}
+  #studentApp .v8-nav-link{color:rgba(255,255,255,.88)!important}
+  #studentApp .v8-nav-link.active{background:var(--subject-primary)!important;color:#fff!important}
+  #studentApp .v8-student-menu-toggle{border-color:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important;background:var(--subject-soft)!important;color:var(--subject-primary)!important;box-shadow:0 4px 12px rgba(15,23,42,.07)!important}
+  #studentApp .v8-hero{background:linear-gradient(130deg,var(--subject-primary),var(--subject-secondary))!important;background-image:none!important}
+  #studentApp .v8-hero::before,#studentApp .v8-hero::after{background-image:none!important}
+}
+
+/* Mobile login follows the subject and stays keyboard-safe. */
+@media(max-width:760px){
+  #authDialog[open]{background:transparent!important}
+  #authDialog .auth-box{border-color:color-mix(in srgb,var(--subject-primary) 18%,var(--subject-line))!important;box-shadow:0 18px 50px rgba(15,23,42,.22)!important}
+  #authDialog .auth-logo span,#authDialog #switchAuth{color:var(--subject-primary)!important}
+  #authDialog input:focus,#authDialog select:focus{border-color:var(--subject-primary)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--subject-primary) 14%,transparent)!important}
+}
+
+/* Teacher mobile compact buttons should use the subject accent, not warm legacy tones. */
+@media(max-width:780px){
+  #teacherApp .btn:not(.btn-danger):not(.btn-danger-outline),
+  #studentApp .v8-view-button,
+  #studentApp .v8-resubmit,
+  #studentApp .v8-copy{border-color:color-mix(in srgb,var(--subject-primary) 25%,var(--subject-line))!important}
+}
+
+
+/* =====================================================================
+   EDUCORE V3.0.1 — remove orange residue + neutral archive-class buttons
+   ===================================================================== */
+
+/* Notification controls should always follow the current subject theme. */
+.v10-notification-button{
+  border-color:var(--subject-line)!important;
+  color:var(--subject-primary)!important;
+  background:#fff!important;
+}
+.v10-notification-button:hover{
+  border-color:color-mix(in srgb,var(--subject-primary) 35%,var(--subject-line))!important;
+  color:var(--subject-primary)!important;
+}
+.v10-notification-button>span{
+  background:var(--subject-primary)!important;
+}
+.v10-notification-row.unread{
+  background:color-mix(in srgb,var(--subject-soft) 72%,#fff)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important;
+}
+.v10-notification-kind,
+.v10-notification-row>i{
+  color:var(--subject-primary)!important;
+}
+.v10-notification-kind{
+  background:color-mix(in srgb,var(--subject-primary) 11%,#fff)!important;
+}
+.v10-notification-row>i{
+  background:var(--subject-primary)!important;
+}
+#studentApp .v8-mobile-tools .v10-student-notification{
+  color:var(--subject-primary)!important;
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
+}
+#studentApp .v8-mobile-tools .v10-student-notification .v8-mobile-notification-label{
+  color:inherit!important;
+}
+
+/* Submission tabs should use the subject palette instead of leftover orange. */
+#teacherApp .submission-kind-tabs{
+  border-color:var(--subject-line)!important;
+  background:#fff!important;
+  box-shadow:0 8px 24px color-mix(in srgb,var(--subject-primary) 8%,transparent)!important;
+}
+#teacherApp .submission-kind-tab{
+  color:var(--subject-ink)!important;
+}
+#teacherApp .submission-kind-tab:hover{
+  background:var(--subject-soft)!important;
+  color:var(--subject-primary)!important;
+}
+#teacherApp .submission-kind-tab span{
+  background:color-mix(in srgb,var(--subject-primary) 10%,#fff)!important;
+  color:var(--subject-dark)!important;
+}
+#teacherApp .submission-kind-tab.active{
+  color:var(--subject-primary)!important;
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 28%,var(--subject-line))!important;
+}
+#teacherApp .submission-kind-tab.active span{
+  background:#fff!important;
+  color:var(--subject-primary)!important;
+}
+
+/* Class archive buttons should be neutral gray with white text. */
+#teacherApp [data-archive-class],
+#confirmArchiveClassBtn{
+  background:#6b7280!important;
+  border-color:#6b7280!important;
+  color:#fff!important;
+}
+#teacherApp [data-archive-class]:hover,
+#confirmArchiveClassBtn:hover{
+  background:#4b5563!important;
+  border-color:#4b5563!important;
+  color:#fff!important;
+}
+#teacherApp [data-archive-class]:disabled,
+#confirmArchiveClassBtn:disabled{
+  background:#9ca3af!important;
+  border-color:#9ca3af!important;
+  color:#fff!important;
+}
+
+
+/* =====================================================================
+   EDUCORE V3.0.2 — finish removing orange residue + theme the logo image
+   ===================================================================== */
+
+/* Subject-specific recolor filters for the PNG EduCore logo. */
+:root{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(76%) saturate(2240%) hue-rotate(226deg) brightness(95%) contrast(92%)}
+:root[data-subject="general"]{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(76%) saturate(2240%) hue-rotate(226deg) brightness(95%) contrast(92%)}
+:root[data-subject="english"]{--subject-logo-filter:brightness(0) saturate(100%) invert(35%) sepia(96%) saturate(1518%) hue-rotate(205deg) brightness(96%) contrast(91%)}
+:root[data-subject="filipino"]{--subject-logo-filter:brightness(0) saturate(100%) invert(23%) sepia(90%) saturate(3534%) hue-rotate(347deg) brightness(96%) contrast(92%)}
+:root[data-subject="araling-panlipunan"]{--subject-logo-filter:brightness(0) saturate(100%) invert(52%) sepia(92%) saturate(915%) hue-rotate(17deg) brightness(95%) contrast(97%)}
+:root[data-subject="science"]{--subject-logo-filter:brightness(0) saturate(100%) invert(38%) sepia(75%) saturate(942%) hue-rotate(94deg) brightness(93%) contrast(95%)}
+:root[data-subject="esp"]{--subject-logo-filter:brightness(0) saturate(100%) invert(29%) sepia(66%) saturate(2145%) hue-rotate(248deg) brightness(96%) contrast(95%)}
+:root[data-subject="tle"]{--subject-logo-filter:brightness(0) saturate(100%) invert(39%) sepia(97%) saturate(889%) hue-rotate(153deg) brightness(92%) contrast(101%)}
+:root[data-subject="mapeh"]{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(88%) saturate(1785%) hue-rotate(311deg) brightness(94%) contrast(99%)}
+
+#publicSite .logo .cap-logo,
+#publicSite .subject-orbit-center img,
+.auth-logo .cap-logo,
+#teacherApp .sidebar-logo .cap-logo,
+#studentApp .v8-brand .v8-logo-icon,
+.loading-logo .cap-logo,
+.loading-logo img{
+  filter:var(--subject-logo-filter)!important;
+}
+
+/* Public site: use the active subject color instead of fixed orange accents. */
+#publicSite .main-nav a.v9-current{
+  border-bottom-color:var(--subject-primary)!important;
+}
+#publicSite .hero h1 span{
+  color:var(--subject-primary)!important;
+}
+#publicSite .teacher-teaser h2 em{
+  text-decoration-color:color-mix(in srgb,var(--subject-primary) 65%,white)!important;
+}
+
+/* Install button + its icon follow the subject theme. */
+#pwaInstallBtn.pwa-install-button{
+  background:linear-gradient(110deg,var(--subject-dark),color-mix(in srgb,var(--subject-primary) 44%,#221913))!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 26%,rgba(255,255,255,.18))!important;
+}
+#pwaInstallBtn.pwa-install-button:hover{
+  background:linear-gradient(110deg,color-mix(in srgb,var(--subject-dark) 88%,#000),color-mix(in srgb,var(--subject-primary) 54%,#221913))!important;
+}
+#pwaInstallBtn .pwa-download-icon{
+  color:var(--subject-secondary)!important;
+}
+#pwaInstallBtn:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--subject-primary) 26%,transparent)!important;
+}
+
+/* Remaining notification residue should always inherit the current subject. */
+.v10-student-notification .v8-icon,
+.v10-notification-button .v8-icon,
+.v10-notification-button .ui-icon{
+  color:currentColor!important;
+  stroke:currentColor!important;
+}
+#studentApp .v8-mobile-tools .v10-student-notification,
+#studentApp .v8-topbar .v10-student-notification,
+#teacherApp .v10-notification-button{
+  color:var(--subject-primary)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
+}
+
+/* Public + shared mini accents that still showed orange. */
+#publicSite .preview-icon{color:var(--subject-primary)!important;stroke:var(--subject-primary)!important}
+#publicSite .v9-chevron{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+
+
+/* =====================================================================
+   EDUCORE V3.0.3 — subject logo PNG swapping + hard bell color override
+   ===================================================================== */
+
+/* Logo images now swap by subject, so stop tinting them with CSS filters. */
+#publicSite .logo .cap-logo,
+#publicSite .subject-orbit-center img,
+.auth-logo .cap-logo,
+#teacherApp .sidebar-logo .cap-logo,
+#studentApp .v8-brand .v8-logo-icon,
+.loading-logo .cap-logo,
+.loading-logo img{
+  filter:none!important;
+}
+
+/* Force the bell icon itself to follow the active subject, not old orange styles. */
+#teacherNotificationBtn,
+#studentNotificationBtn,
+#studentApp .v8-mobile-tools #studentNotificationBtn,
+#studentApp .v8-topbar #studentNotificationBtn{
+  color:var(--subject-primary)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
+}
+#teacherNotificationBtn svg,
+#teacherNotificationBtn .ui-icon,
+#teacherNotificationBtn path,
+#studentNotificationBtn svg,
+#studentNotificationBtn .v8-icon,
+#studentNotificationBtn path{
+  color:var(--subject-primary)!important;
+  stroke:var(--subject-primary)!important;
+  fill:none!important;
+}
+#teacherNotificationBtn:hover,
+#studentNotificationBtn:hover{
+  color:var(--subject-primary)!important;
+}
