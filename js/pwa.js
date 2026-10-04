@@ -251,19 +251,19 @@
         .pwa-dialog{border:0;padding:0;border-radius:22px;background:transparent;max-width:none}
         .pwa-dialog::backdrop{background:rgba(30,22,17,.5);backdrop-filter:blur(3px)}
         .pwa-card{width:min(440px,calc(100vw - 36px));padding:26px;border-radius:22px;background:#fff;color:#2f241d;box-shadow:0 24px 70px rgba(47,36,29,.24);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-        .pwa-card-icon{width:52px;height:52px;border-radius:16px;background:#fff1e8;color:#ff6500;display:grid;place-items:center;font-size:26px;margin-bottom:14px}
-        .pwa-card-eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;color:#ff6500;margin-bottom:6px}
+        .pwa-card-icon{width:52px;height:52px;border-radius:16px;background:var(--subject-soft,#eef2ff);color:var(--subject-primary,#4f46e5);display:grid;place-items:center;font-size:26px;margin-bottom:14px}
+        .pwa-card-eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--subject-primary,#4f46e5);margin-bottom:6px}
         .pwa-card h2{margin:0 0 8px;font-size:25px;line-height:1.1}
         .pwa-card p{margin:0;color:#6e6259;line-height:1.55}
         .pwa-card-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;flex-wrap:wrap}
         .pwa-btn{border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font:inherit}
         .pwa-btn-light{border:1px solid #ead8cb;background:#fff;color:#2f241d}
-        .pwa-btn-orange{border:0;background:#ff6500;color:#fff;padding-inline:18px}
+        .pwa-btn-orange{border:0;background:var(--subject-primary,#4f46e5);color:#fff;padding-inline:18px}
         .pwa-share-icon svg{width:25px;height:25px}
         .pwa-ios-intro{margin-bottom:16px!important}
         .pwa-ios-step-list{display:grid;gap:10px;margin-top:16px}
         .pwa-ios-step{display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start;padding:12px;border:1px solid #f1dfd2;background:#fffaf6;border-radius:14px}
-        .pwa-ios-step-number{width:30px;height:30px;border-radius:10px;background:#ff6500;color:#fff;display:grid;place-items:center;font-weight:900}
+        .pwa-ios-step-number{width:30px;height:30px;border-radius:10px;background:var(--subject-primary,#4f46e5);color:#fff;display:grid;place-items:center;font-weight:900}
         .pwa-ios-step strong{display:block;font-size:14px;color:#2f241d;margin-bottom:2px}
         .pwa-ios-step div span{display:block;font-size:13px;line-height:1.42;color:#6e6259}
         .pwa-ios-result{display:flex;gap:9px;align-items:flex-start;margin-top:14px;padding:11px 12px;border-radius:13px;background:#f3fbf4;color:#36563d;font-size:12px;line-height:1.4}
@@ -291,7 +291,7 @@
           position:relative!important;
           border:1px solid #4a3326!important;
           color:#fff!important;
-          background:#30251d!important;
+          background:var(--subject-dark,#312e81)!important;
           box-shadow:0 8px 20px rgba(48,37,29,.16)!important;
           display:inline-flex!important;align-items:center!important;justify-content:center!important;
           transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important;
@@ -299,9 +299,9 @@
         .pwa-install-button > span{margin:0!important;font-size:inherit!important;line-height:1!important;font-weight:800!important;white-space:nowrap!important}
         .pwa-install-button .pwa-download-icon{
           position:absolute;right:16px;top:50%;transform:translateY(-50%);
-          width:17px;height:17px;display:block;color:#ff8a3d;
+          width:17px;height:17px;display:block;color:var(--subject-primary,#4f46e5);
         }
-        .pwa-install-button:hover{transform:translateY(-2px);background:#3b2d24!important;box-shadow:0 10px 22px rgba(48,37,29,.22)!important}
+        .pwa-install-button:hover{transform:translateY(-2px);background:color-mix(in srgb,var(--subject-dark,#312e81) 86%,#000)!important;box-shadow:0 10px 22px rgba(48,37,29,.22)!important}
         .pwa-install-button:focus-visible{outline:3px solid rgba(255,101,0,.25)!important;outline-offset:3px}
 
         @media(min-width:521px){
@@ -448,7 +448,7 @@
     updateConnectivityUi();
 
     try {
-      const registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+      const registration = await navigator.serviceWorker.register('./service-worker.js', { scope: './', updateViaCache: 'none' });
       watchRegistration(registration);
       console.log('EduCore service worker ready:', registration.scope);
 

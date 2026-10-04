@@ -1,8 +1,8 @@
-/* EduCore PWA — Step 6.9.15
+/* EduCore PWA — V3.0.4
    GitHub Pages + localhost friendly.
    Provides app-shell caching, a graceful offline fallback, and controlled updates. */
 
-const CACHE_NAME = 'educore-pwa-v3.0.0';
+const CACHE_NAME = 'educore-pwa-v3.0.4';
 const CACHE_PREFIX = 'educore-pwa-';
 
 const APP_SHELL = [
@@ -10,26 +10,34 @@ const APP_SHELL = [
   './index.html',
   './offline.html',
   './manifest.webmanifest',
-  './icons/apple-touch-icon.png',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/maskable-512.png',
-  './assets/favicon-180.png?v=300',
+  './icons/educore-apple-touch-icon.png?v=304',
+  './icons/educore-icon-192.png',
+  './icons/educore-icon-512.png',
+  './icons/educore-maskable-512.png',
+  './assets/educore-logos/educore-general.png?v=304',
+  './assets/educore-logos/educore-english.png?v=304',
+  './assets/educore-logos/educore-filipino.png?v=304',
+  './assets/educore-logos/educore-araling-panlipunan.png?v=304',
+  './assets/educore-logos/educore-science.png?v=304',
+  './assets/educore-logos/educore-esp.png?v=304',
+  './assets/educore-logos/educore-tle.png?v=304',
+  './assets/educore-logos/educore-mapeh.png?v=304',
   './css/styles.css?v=12.2',
   './css/art-theme.css?v=7.0',
   './css/student-v8.css?v=10.5',
   './css/design-v9.css?v=9.1',
   './css/classroom-features.css?v=11.3',
   './js/config.js',
-  './js/app.js?v=15.6',
+  './js/app.js?v=15.7',
   './js/student-v8.js?v=15.0',
   './js/classroom-features.js?v=15.1',
   './js/design-v9.js?v=9',
-  './js/pwa.js?v=6.9.15',
-  './js/push-notifications.js?v=6.9',
+  './js/pwa.js?v=6.9.16',
+  './js/push-notifications.js?v=6.9.1',
   './css/archive-features.css?v=12.2',
   './css/layout-fixes.css?v=14.0',
   './css/work-types-v21.css?v=15.10',
+  './css/subject-themes.css?v=3.0.4',
   './js/archive-features.js?v=15.3',
   './js/work-types-v21.js?v=15.7'
 ];

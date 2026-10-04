@@ -529,198 +529,44 @@ body.v8-student-active::after{display:none!important}
 }
 
 
-/* =====================================================================
-   EDUCORE V3.0.1 — remove orange residue + neutral archive-class buttons
-   ===================================================================== */
-
-/* Notification controls should always follow the current subject theme. */
-.v10-notification-button{
-  border-color:var(--subject-line)!important;
-  color:var(--subject-primary)!important;
-  background:#fff!important;
-}
-.v10-notification-button:hover{
-  border-color:color-mix(in srgb,var(--subject-primary) 35%,var(--subject-line))!important;
-  color:var(--subject-primary)!important;
-}
-.v10-notification-button>span{
-  background:var(--subject-primary)!important;
-}
-.v10-notification-row.unread{
-  background:color-mix(in srgb,var(--subject-soft) 72%,#fff)!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important;
-}
-.v10-notification-kind,
-.v10-notification-row>i{
-  color:var(--subject-primary)!important;
-}
-.v10-notification-kind{
-  background:color-mix(in srgb,var(--subject-primary) 11%,#fff)!important;
-}
-.v10-notification-row>i{
-  background:var(--subject-primary)!important;
-}
-#studentApp .v8-mobile-tools .v10-student-notification{
-  color:var(--subject-primary)!important;
-  background:var(--subject-soft)!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
-}
-#studentApp .v8-mobile-tools .v10-student-notification .v8-mobile-notification-label{
-  color:inherit!important;
-}
-
-/* Submission tabs should use the subject palette instead of leftover orange. */
-#teacherApp .submission-kind-tabs{
-  border-color:var(--subject-line)!important;
-  background:#fff!important;
-  box-shadow:0 8px 24px color-mix(in srgb,var(--subject-primary) 8%,transparent)!important;
-}
-#teacherApp .submission-kind-tab{
-  color:var(--subject-ink)!important;
-}
-#teacherApp .submission-kind-tab:hover{
-  background:var(--subject-soft)!important;
-  color:var(--subject-primary)!important;
-}
-#teacherApp .submission-kind-tab span{
-  background:color-mix(in srgb,var(--subject-primary) 10%,#fff)!important;
-  color:var(--subject-dark)!important;
-}
-#teacherApp .submission-kind-tab.active{
-  color:var(--subject-primary)!important;
-  background:var(--subject-soft)!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 28%,var(--subject-line))!important;
-}
-#teacherApp .submission-kind-tab.active span{
-  background:#fff!important;
-  color:var(--subject-primary)!important;
-}
-
-/* Class archive buttons should be neutral gray with white text. */
-#teacherApp [data-archive-class],
-#confirmArchiveClassBtn{
-  background:#6b7280!important;
-  border-color:#6b7280!important;
-  color:#fff!important;
-}
-#teacherApp [data-archive-class]:hover,
-#confirmArchiveClassBtn:hover{
-  background:#4b5563!important;
-  border-color:#4b5563!important;
-  color:#fff!important;
-}
-#teacherApp [data-archive-class]:disabled,
-#confirmArchiveClassBtn:disabled{
-  background:#9ca3af!important;
-  border-color:#9ca3af!important;
-  color:#fff!important;
-}
-
-
-/* =====================================================================
-   EDUCORE V3.0.2 — finish removing orange residue + theme the logo image
-   ===================================================================== */
-
-/* Subject-specific recolor filters for the PNG EduCore logo. */
-:root{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(76%) saturate(2240%) hue-rotate(226deg) brightness(95%) contrast(92%)}
-:root[data-subject="general"]{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(76%) saturate(2240%) hue-rotate(226deg) brightness(95%) contrast(92%)}
-:root[data-subject="english"]{--subject-logo-filter:brightness(0) saturate(100%) invert(35%) sepia(96%) saturate(1518%) hue-rotate(205deg) brightness(96%) contrast(91%)}
-:root[data-subject="filipino"]{--subject-logo-filter:brightness(0) saturate(100%) invert(23%) sepia(90%) saturate(3534%) hue-rotate(347deg) brightness(96%) contrast(92%)}
-:root[data-subject="araling-panlipunan"]{--subject-logo-filter:brightness(0) saturate(100%) invert(52%) sepia(92%) saturate(915%) hue-rotate(17deg) brightness(95%) contrast(97%)}
-:root[data-subject="science"]{--subject-logo-filter:brightness(0) saturate(100%) invert(38%) sepia(75%) saturate(942%) hue-rotate(94deg) brightness(93%) contrast(95%)}
-:root[data-subject="esp"]{--subject-logo-filter:brightness(0) saturate(100%) invert(29%) sepia(66%) saturate(2145%) hue-rotate(248deg) brightness(96%) contrast(95%)}
-:root[data-subject="tle"]{--subject-logo-filter:brightness(0) saturate(100%) invert(39%) sepia(97%) saturate(889%) hue-rotate(153deg) brightness(92%) contrast(101%)}
-:root[data-subject="mapeh"]{--subject-logo-filter:brightness(0) saturate(100%) invert(31%) sepia(88%) saturate(1785%) hue-rotate(311deg) brightness(94%) contrast(99%)}
-
-#publicSite .logo .cap-logo,
-#publicSite .subject-orbit-center img,
-.auth-logo .cap-logo,
-#teacherApp .sidebar-logo .cap-logo,
-#studentApp .v8-brand .v8-logo-icon,
-.loading-logo .cap-logo,
-.loading-logo img{
-  filter:var(--subject-logo-filter)!important;
-}
-
-/* Public site: use the active subject color instead of fixed orange accents. */
-#publicSite .main-nav a.v9-current{
-  border-bottom-color:var(--subject-primary)!important;
-}
-#publicSite .hero h1 span{
-  color:var(--subject-primary)!important;
-}
-#publicSite .teacher-teaser h2 em{
-  text-decoration-color:color-mix(in srgb,var(--subject-primary) 65%,white)!important;
-}
-
-/* Install button + its icon follow the subject theme. */
-#pwaInstallBtn.pwa-install-button{
-  background:linear-gradient(110deg,var(--subject-dark),color-mix(in srgb,var(--subject-primary) 44%,#221913))!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 26%,rgba(255,255,255,.18))!important;
-}
-#pwaInstallBtn.pwa-install-button:hover{
-  background:linear-gradient(110deg,color-mix(in srgb,var(--subject-dark) 88%,#000),color-mix(in srgb,var(--subject-primary) 54%,#221913))!important;
-}
-#pwaInstallBtn .pwa-download-icon{
-  color:var(--subject-secondary)!important;
-}
-#pwaInstallBtn:focus-visible{
-  outline:3px solid color-mix(in srgb,var(--subject-primary) 26%,transparent)!important;
-}
-
-/* Remaining notification residue should always inherit the current subject. */
-.v10-student-notification .v8-icon,
-.v10-notification-button .v8-icon,
-.v10-notification-button .ui-icon{
-  color:currentColor!important;
-  stroke:currentColor!important;
-}
-#studentApp .v8-mobile-tools .v10-student-notification,
-#studentApp .v8-topbar .v10-student-notification,
-#teacherApp .v10-notification-button{
-  color:var(--subject-primary)!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
-}
-
-/* Public + shared mini accents that still showed orange. */
-#publicSite .preview-icon{color:var(--subject-primary)!important;stroke:var(--subject-primary)!important}
-#publicSite .v9-chevron{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
-
-
-/* =====================================================================
-   EDUCORE V3.0.3 — subject logo PNG swapping + hard bell color override
-   ===================================================================== */
-
-/* Logo images now swap by subject, so stop tinting them with CSS filters. */
-#publicSite .logo .cap-logo,
-#publicSite .subject-orbit-center img,
-.auth-logo .cap-logo,
-#teacherApp .sidebar-logo .cap-logo,
-#studentApp .v8-brand .v8-logo-icon,
-.loading-logo .cap-logo,
-.loading-logo img{
-  filter:none!important;
-}
-
-/* Force the bell icon itself to follow the active subject, not old orange styles. */
+/* ========================================================================== 
+   EduCore V3.0.4 — PWA/mobile subject-theme hardening
+   Keeps newly added controls from falling back to Mathside orange.
+   ========================================================================== */
 #teacherNotificationBtn,
 #studentNotificationBtn,
-#studentApp .v8-mobile-tools #studentNotificationBtn,
-#studentApp .v8-topbar #studentNotificationBtn{
-  color:var(--subject-primary)!important;
-  border-color:color-mix(in srgb,var(--subject-primary) 22%,var(--subject-line))!important;
-}
-#teacherNotificationBtn svg,
+.v10-notification-button{color:var(--subject-primary)!important}
 #teacherNotificationBtn .ui-icon,
-#teacherNotificationBtn path,
-#studentNotificationBtn svg,
-#studentNotificationBtn .v8-icon,
-#studentNotificationBtn path{
-  color:var(--subject-primary)!important;
-  stroke:var(--subject-primary)!important;
-  fill:none!important;
+#studentNotificationBtn .v8-icon{stroke:var(--subject-primary)!important}
+.v10-notification-row.unread{
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 30%,var(--subject-line))!important;
 }
-#teacherNotificationBtn:hover,
-#studentNotificationBtn:hover{
-  color:var(--subject-primary)!important;
+.v10-notification-kind{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+.v10-notification-row>i{background:var(--subject-primary)!important}
+.submission-kind-tab.active{
+  color:var(--subject-dark)!important;
+  background:var(--subject-soft)!important;
+  border-color:color-mix(in srgb,var(--subject-primary) 32%,var(--subject-line))!important;
 }
+.submission-kind-tab.active span{color:var(--subject-primary)!important;background:#fff!important}
+.performance-task-card{border-left-color:var(--subject-primary)!important}
+.performance-thumb{color:var(--subject-primary)!important;background:var(--subject-soft)!important}
+.rubric-chip{color:var(--subject-dark)!important;background:var(--subject-soft)!important;border-color:color-mix(in srgb,var(--subject-primary) 24%,var(--subject-line))!important}
+.performance-student-row{border-left-color:var(--subject-secondary)!important}
+.performance-student-row .v8-task-icon.orange{background:var(--subject-soft)!important;color:var(--subject-primary)!important}
+#studentApp .v10-calendar-day.has-task{background:var(--subject-soft)!important;border-color:color-mix(in srgb,var(--subject-primary) 40%,var(--subject-line))!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--subject-primary) 16%,transparent)!important}
+#studentApp .v10-calendar-day.has-task:hover{background:var(--subject-soft-2)!important}
+#studentApp .v10-calendar-day.is-selected{outline-color:var(--subject-primary)!important;background:var(--subject-soft-2)!important}
+.v15-calendar-deadline-dot{background:var(--subject-primary)!important}
+.performance-creator-options label>input:checked+span{border-color:var(--subject-primary)!important;background:var(--subject-soft)!important;box-shadow:0 7px 18px color-mix(in srgb,var(--subject-primary) 12%,transparent)!important}
+.performance-creator-options label>input:checked+span::before{border-color:var(--subject-primary)!important;background:var(--subject-primary)!important}
+.performance-creator-options label:hover>span{border-color:color-mix(in srgb,var(--subject-primary) 42%,var(--subject-line))!important}
+
+/* The PNG logo itself changes with the selected subject. Keep it square and crisp. */
+.cap-logo,.v8-logo-icon,.loading-logo img,.subject-orbit-center img{object-fit:contain!important}
+#publicSite .logo .cap-logo{width:38px!important;height:38px!important}
+.auth-logo .cap-logo{width:38px!important;height:38px!important}
+#teacherApp .sidebar-logo .cap-logo{width:36px!important;height:36px!important}
+#studentApp .v8-brand .v8-logo-icon{width:36px!important;height:36px!important}
+.loading-logo img{width:72px!important;height:72px!important}

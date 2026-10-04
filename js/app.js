@@ -33,34 +33,30 @@ function normalizedSubject(value = '') {
   return Object.keys(SUBJECTS).find(name => name.toLocaleLowerCase() === lower) || '';
 }
 function currentSubject() { return normalizedSubject(state?.profile?.subject) || ''; }
-function currentThemeConfig(subject = '') {
-  const normalized = normalizedSubject(subject);
-  return normalized ? SUBJECTS[normalized] : {
-    slug: 'general', primary: '#4f46e5', secondary: '#8b5cf6', dark: '#312e81', soft: '#eef2ff', soft2: '#ddd6fe'
-  };
-}
-function logoPathForSubject(subject = '') {
-  return `assets/educore-logo-${currentThemeConfig(subject).slug}.png?v=302`;
-}
-function applySubjectLogos(subject = '') {
-  const src = logoPathForSubject(subject);
-  const selectors = [
-    '#publicSite .logo .cap-logo',
-    '#publicSite .subject-orbit-center img',
-    '.auth-logo .cap-logo',
-    '#teacherApp .sidebar-logo .cap-logo',
-    '#studentApp .v8-brand .v8-logo-icon',
-    '.loading-logo .cap-logo',
-    '.loading-logo img'
-  ];
-  selectors.forEach(selector => {
-    document.querySelectorAll(selector).forEach(img => {
-      if (img && img.getAttribute('src') !== src) img.setAttribute('src', src);
-    });
+
+const EDUCORE_LOGOS = {
+  general: 'assets/educore-logos/educore-general.png?v=304',
+  english: 'assets/educore-logos/educore-english.png?v=304',
+  filipino: 'assets/educore-logos/educore-filipino.png?v=304',
+  'araling-panlipunan': 'assets/educore-logos/educore-araling-panlipunan.png?v=304',
+  science: 'assets/educore-logos/educore-science.png?v=304',
+  esp: 'assets/educore-logos/educore-esp.png?v=304',
+  tle: 'assets/educore-logos/educore-tle.png?v=304',
+  mapeh: 'assets/educore-logos/educore-mapeh.png?v=304'
+};
+
+function applyEduCoreLogo(slug = 'general') {
+  const src = EDUCORE_LOGOS[slug] || EDUCORE_LOGOS.general;
+  document.querySelectorAll('img.cap-logo, .loading-logo img, .subject-orbit-center img, img.v8-logo-icon').forEach(img => {
+    if (img.getAttribute('src') !== src) img.setAttribute('src', src);
   });
 }
+
 function applySubjectTheme(subject = '') {
-  const theme = currentThemeConfig(subject);
+  const normalized = normalizedSubject(subject);
+  const theme = normalized ? SUBJECTS[normalized] : {
+    slug: 'general', primary: '#4f46e5', secondary: '#8b5cf6', dark: '#312e81', soft: '#eef2ff', soft2: '#ddd6fe'
+  };
   const root = document.documentElement;
   root.dataset.subject = theme.slug;
   root.style.setProperty('--active-subject-color', theme.primary);
@@ -70,7 +66,7 @@ function applySubjectTheme(subject = '') {
   root.style.setProperty('--subject-soft', theme.soft);
   root.style.setProperty('--subject-soft-2', theme.soft2);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme.primary);
-  applySubjectLogos(subject);
+  applyEduCoreLogo(theme.slug);
 }
 
 
@@ -166,6 +162,9 @@ function friendlyErrorMessage(error, fallback = 'Something went wrong. Please tr
     return offline
       ? 'You appear to be offline. Connect to Wi-Fi or mobile data, then try again.'
       : 'Poor internet connection or temporary network problem. Check your Wi-Fi or mobile data, then try again.';
+  }
+  if (lower.includes('edge function returned a non-2xx status code') || lower.includes('functionshttperror')) {
+    return fallback;
   }
   return raw || fallback;
 }
