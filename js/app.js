@@ -35,14 +35,14 @@ function normalizedSubject(value = '') {
 function currentSubject() { return normalizedSubject(state?.profile?.subject) || ''; }
 
 const EDUCORE_LOGOS = {
-  general: 'assets/educore-logos/educore-general.png?v=304',
-  english: 'assets/educore-logos/educore-english.png?v=304',
-  filipino: 'assets/educore-logos/educore-filipino.png?v=304',
-  'araling-panlipunan': 'assets/educore-logos/educore-araling-panlipunan.png?v=304',
-  science: 'assets/educore-logos/educore-science.png?v=304',
-  esp: 'assets/educore-logos/educore-esp.png?v=304',
-  tle: 'assets/educore-logos/educore-tle.png?v=304',
-  mapeh: 'assets/educore-logos/educore-mapeh.png?v=304'
+  general: 'assets/educore-logos/educore-general.png?v=305',
+  english: 'assets/educore-logos/educore-english.png?v=305',
+  filipino: 'assets/educore-logos/educore-filipino.png?v=305',
+  'araling-panlipunan': 'assets/educore-logos/educore-araling-panlipunan.png?v=305',
+  science: 'assets/educore-logos/educore-science.png?v=305',
+  esp: 'assets/educore-logos/educore-esp.png?v=305',
+  tle: 'assets/educore-logos/educore-tle.png?v=305',
+  mapeh: 'assets/educore-logos/educore-mapeh.png?v=305'
 };
 
 function applyEduCoreLogo(slug = 'general') {
