@@ -9,23 +9,19 @@ function validUuid(value: string) {
 }
 
 function randomPassword() {
+  // Easy-to-type temporary student password: 8 lowercase letters with a
+  // consonant/vowel pattern (example: "navetomi"). No symbols or numbers.
   const consonants = 'bcdfghjkmnpqrstvwxyz'
-  const vowels = 'aeiu'
-  const digits = '23456789'
+  const vowels = 'aeiou'
   const bytes = new Uint8Array(8)
   crypto.getRandomValues(bytes)
-  return [
-    consonants[bytes[0] % consonants.length],
-    vowels[bytes[1] % vowels.length],
-    consonants[bytes[2] % consonants.length],
-    vowels[bytes[3] % vowels.length],
-    digits[bytes[4] % digits.length],
-    digits[bytes[5] % digits.length],
-    digits[bytes[6] % digits.length],
-    digits[bytes[7] % digits.length],
-  ].join('')
+  let value = ''
+  for (let index = 0; index < bytes.length; index += 1) {
+    const alphabet = index % 2 === 0 ? consonants : vowels
+    value += alphabet[bytes[index] % alphabet.length]
+  }
+  return value
 }
-
 const resetStudentPasswords = withSupabase({ auth: 'user' }, async (req, ctx) => {
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed.' }, 405)

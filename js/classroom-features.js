@@ -10,6 +10,9 @@
     draftTimer: null,
     notifications: [],
     notificationCleanupDone: false,
+    notificationFetchedAt: 0,
+    notificationFetchPromise: null,
+    notificationUserId: null,
     pollTimer: null
   };
 
@@ -46,6 +49,8 @@
     if (days <= 7) return { label: `Due in ${days} days`, key: 'soon' };
     return { label: `Due ${formatFullDate(d)}`, key: 'later' };
   };
+  const NOTIFICATION_CACHE_MS = 60000;
+  const NOTIFICATION_POLL_MS = 180000;
   const currentUserId = () => state.user?.id || null;
   const connected = () => Boolean(db && currentUserId());
   const studentAssignments = () => state.assignments.filter(a => a.status === 'published');
@@ -294,7 +299,10 @@
     document.getElementById('v10MarkAllRead')?.addEventListener('click', async () => {
       if (!connected()) return;
       await db.rpc('classside_mark_notifications_read', { p_ids: null });
-      await refreshNotifications();
+      const readAt = new Date().toISOString();
+      feature.notifications.forEach(note => { note.read_at = note.read_at || readAt; });
+      feature.notificationFetchedAt = Date.now();
+      renderNotifications();
     });
     document.getElementById('v10NotificationList')?.addEventListener('click', async event => {
       const btn = event.target.closest('[data-notification-id]');
@@ -307,8 +315,8 @@
       btn.querySelector(':scope > i')?.remove();
       renderNotifications();
       await db.rpc('classside_mark_notifications_read', { p_ids: [note.id] });
+      feature.notificationFetchedAt = Date.now();
       document.getElementById('v10NotificationDialog')?.close();
-      await refreshNotifications();
       routeNotification(note);
     });
   }
@@ -329,32 +337,54 @@
     box.innerHTML = feature.notifications.length ? feature.notifications.map(n => `<button type="button" class="v10-notification-row ${n.read_at ? '' : 'unread'}" data-notification-id="${esc(n.id)}"><span class="v10-notification-kind">${notificationIcon(n.type)}</span><span><b>${esc(n.title || 'EduCore update')}</b><small>${esc(n.body || '')}</small><time>${esc(formatDateTime(n.created_at))}</time></span>${n.read_at ? '' : '<i></i>'}</button>`).join('') : featureEmpty('You’re all caught up.', 'New class updates will appear here.');
   }
 
-  async function refreshNotifications() {
+  async function refreshNotifications({ force = false } = {}) {
     if (!connected()) return;
-
-    // Notifications are retained for seven days only. The RPC removes expired
-    // database rows; the date filter also guarantees that an expired item never
-    // appears in the UI while an older deployment is being upgraded.
-    if (!feature.notificationCleanupDone) {
-      const { error: cleanupError } = await db.rpc('classside_cleanup_old_notifications');
-      if (cleanupError && !String(cleanupError.message || '').toLowerCase().includes('could not find')) {
-        console.warn('Notification cleanup:', cleanupError.message || cleanupError);
-      }
-      feature.notificationCleanupDone = true;
+    const userId = currentUserId();
+    if (feature.notificationUserId !== userId) {
+      feature.notificationUserId = userId;
+      feature.notifications = [];
+      feature.notificationFetchedAt = 0;
+      feature.notificationCleanupDone = false;
+      feature.notificationFetchPromise = null;
     }
-    const retentionCutoff = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)).toISOString();
-    const { data, error } = await db.from('classside_notifications')
-      .select('*')
-      .eq('user_id', currentUserId())
-      .gte('created_at', retentionCutoff)
-      .order('created_at', { ascending: false })
-      .limit(60);
-    if (error) {
-      console.warn('Notifications not ready:', error.message || error);
+    if (feature.notificationFetchPromise) return feature.notificationFetchPromise;
+    if (!force && feature.notificationFetchedAt && Date.now() - feature.notificationFetchedAt < NOTIFICATION_CACHE_MS) {
+      renderNotifications();
       return;
     }
-    feature.notifications = data || [];
-    renderNotifications();
+
+    feature.notificationFetchPromise = (async () => {
+      // Notifications are retained for seven days only. The RPC removes expired
+      // database rows; the date filter also guarantees that an expired item never
+      // appears in the UI while an older deployment is being upgraded.
+      if (!feature.notificationCleanupDone) {
+        const { error: cleanupError } = await db.rpc('classside_cleanup_old_notifications');
+        if (cleanupError && !String(cleanupError.message || '').toLowerCase().includes('could not find')) {
+          console.warn('Notification cleanup:', cleanupError.message || cleanupError);
+        }
+        feature.notificationCleanupDone = true;
+      }
+      const retentionCutoff = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)).toISOString();
+      const { data, error } = await db.from('classside_notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('created_at', retentionCutoff)
+        .order('created_at', { ascending: false })
+        .limit(60);
+      if (error) {
+        console.warn('Notifications not ready:', error.message || error);
+        return;
+      }
+      feature.notifications = data || [];
+      feature.notificationFetchedAt = Date.now();
+      renderNotifications();
+    })();
+
+    try {
+      return await feature.notificationFetchPromise;
+    } finally {
+      feature.notificationFetchPromise = null;
+    }
   }
 
   async function openNotifications() {
@@ -548,7 +578,14 @@
       views: [{ state: 'frozen', xSplit: 2, ySplit: 4 }]
     });
 
-    const totalColumns = Math.max(2, 2 + assignments.length);
+    const totalItemCount = assignments.reduce((sum, assignment) => {
+      if (isPerformanceTask(assignment)) return sum + 1;
+      return sum + questionsFor(assignment.id).length;
+    }, 0);
+    const totalPossiblePoints = assignments.reduce((sum, assignment) => sum + Number(totalPoints(assignment.id) || 0), 0);
+    const totalColumns = Math.max(3, 3 + assignments.length);
+    const lastAssignmentColumnNumber = 2 + assignments.length;
+    const totalScoreColumnNumber = 3 + assignments.length;
     const lastColumn = sheet.getColumn(totalColumns).letter;
     const title = `EduCore Class Record — ${section.name}`;
 
@@ -568,10 +605,23 @@
     infoCell.alignment = { vertical: 'middle', horizontal: 'left' };
     sheet.getRow(2).height = 22;
 
+    sheet.mergeCells(`A3:${lastColumn}3`);
+    const summaryCell = sheet.getCell('A3');
+    summaryCell.value = `Written works / tasks: ${assignments.length}   •   Total items: ${totalItemCount}   •   Total possible score: ${totalPossiblePoints}`;
+    summaryCell.font = { bold: true, color: { argb: 'FF334155' } };
+    summaryCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+    summaryCell.alignment = { vertical: 'middle', horizontal: 'left' };
+    sheet.getRow(3).height = 21;
+
     const headers = [
       'Student Name',
       'Gender',
-      ...assignments.map(a => `${a.title}\n(${totalPoints(a.id)} pts)`)
+      ...assignments.map(a => {
+        const items = isPerformanceTask(a) ? 1 : questionsFor(a.id).length;
+        const itemLabel = isPerformanceTask(a) ? 'task' : `${items} item${items === 1 ? '' : 's'}`;
+        return `${a.title}\n(${itemLabel} · ${totalPoints(a.id)} pts)`;
+      }),
+      `Total Score\n(/ ${totalPossiblePoints})`
     ];
     const headerRow = sheet.getRow(4);
     headerRow.values = headers;
@@ -621,7 +671,16 @@
       });
 
       const row = sheet.getRow(rowNumber);
-      row.values = [student.display_name || '', classRecordGenderLabel(student.gender), ...scoreValues];
+      row.values = [student.display_name || '', classRecordGenderLabel(student.gender), ...scoreValues, ''];
+      if (assignments.length) {
+        const firstScoreColumn = sheet.getColumn(3).letter;
+        const finalScoreColumn = sheet.getColumn(lastAssignmentColumnNumber).letter;
+        row.getCell(totalScoreColumnNumber).value = { formula: `SUM(${firstScoreColumn}${rowNumber}:${finalScoreColumn}${rowNumber})` };
+      } else {
+        row.getCell(totalScoreColumnNumber).value = 0;
+      }
+      row.getCell(totalScoreColumnNumber).font = { bold: true, color: { argb: 'FF7C2D00' } };
+      row.getCell(totalScoreColumnNumber).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE8D5' } };
       row.height = 22;
       row.eachCell((cell, colNumber) => {
         cell.border = thinBorder;
@@ -654,13 +713,15 @@
 
     sheet.getColumn(1).width = 34;
     sheet.getColumn(2).width = 13;
-    for (let col = 3; col <= totalColumns; col += 1) sheet.getColumn(col).width = 22;
+    for (let col = 3; col <= lastAssignmentColumnNumber; col += 1) sheet.getColumn(col).width = 22;
+    sheet.getColumn(totalScoreColumnNumber).width = 18;
     sheet.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: totalColumns } };
 
     // Keep the assignment reference sheet, but style it to match the class record.
     const assignmentSheet = workbook.addWorksheet('Assignments');
     assignmentSheet.columns = [
       { header: 'Assignment', key: 'assignment', width: 38 },
+      { header: 'Items', key: 'items', width: 12 },
       { header: 'Maximum Points', key: 'points', width: 18 },
       { header: 'Deadline', key: 'deadline', width: 24 },
       { header: 'Resubmission', key: 'resubmission', width: 18 }
@@ -675,6 +736,7 @@
     assignments.forEach(a => {
       const row = assignmentSheet.addRow({
         assignment: a.title,
+        items: isPerformanceTask(a) ? 1 : questionsFor(a.id).length,
         points: totalPoints(a.id),
         deadline: a.due_at ? formatFullDate(a.due_at) : 'No deadline',
         resubmission: a.allow_resubmission ? 'Allowed' : 'Not allowed'
@@ -683,6 +745,13 @@
         cell.border = thinBorder;
         cell.alignment = { vertical: 'middle', wrapText: true };
       });
+    });
+    const assignmentTotalRow = assignmentSheet.addRow({ assignment: 'TOTAL', items: totalItemCount, points: totalPossiblePoints });
+    assignmentTotalRow.eachCell(cell => {
+      cell.border = thinBorder;
+      cell.font = { bold: true, color: { argb: 'FF7C2D00' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE8D5' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
     assignmentSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
@@ -750,7 +819,7 @@
   window.addEventListener('focus', () => syncWorkspace().catch(() => {}));
   feature.pollTimer = setInterval(() => {
     if (document.visibilityState === 'visible' && connected() && state.profile) refreshNotifications().catch(() => {});
-  }, 45000);
+  }, NOTIFICATION_POLL_MS);
 
   window.EduCoreV10 = {
     renderStudentPanel,

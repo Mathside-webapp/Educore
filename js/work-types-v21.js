@@ -1,4 +1,4 @@
-/* EduCore V15 — Performance Tasks + submission categories.
+/* EduCore V15.11 — Compact hidden filters for Written Works, Performance Tasks and Submissions.
    Adapted from the established EduCore performance-task workflow while
    preserving EduCore archive, manual review and controlled resubmission. */
 (() => {
@@ -8,6 +8,13 @@
   let editingPerformanceTaskId = null;
   let editingPerformanceTaskIds = [];
   let activePerformanceTaskId = null;
+  let performanceTaskSectionFilter = 'all';
+  let performanceTaskStatusFilter = 'all';
+  let performanceTaskModeFilter = 'all';
+  let performanceTaskSort = 'newest';
+  let activitySectionFilter = 'all';
+  let activityStatusFilter = 'all';
+  let activitySort = 'newest';
   const performanceLeaderSelections = new Map();
 
   const originalOpenAssignmentPreview = openAssignmentPreview;
@@ -102,7 +109,7 @@
       $('#teacherPageTitle').textContent = 'Performance Tasks';
       renderPerformanceTasks();
     }
-    if (view === 'assignments') $('#teacherPageTitle').textContent = 'Activities';
+    if (view === 'assignments') $('#teacherPageTitle').textContent = 'Written Works';
   };
 
   renderTeacher = function() {
@@ -115,15 +122,80 @@
   };
 
   // ---------------------------------------------------------------
-  // WRITTEN ACTIVITY LIST — do not mix performance tasks into it
+  // WRITTEN ACTIVITY LIST + COMPACT FILTERS
   // ---------------------------------------------------------------
+  function activityGroupState(group) {
+    const archived = group.every(item => item.status === 'archived');
+    const scheduled = !archived && group.some(item => item.status === 'draft' && item.publish_at && new Date(item.publish_at).getTime() > Date.now());
+    return archived ? 'archived' : scheduled ? 'scheduled' : 'posted';
+  }
+
+  function syncActivityFilterUi() {
+    const sectionSelect = $('#activitySectionFilter');
+    if (sectionSelect) {
+      const activeIds = new Set(activeSections().map(section => section.id));
+      if (activitySectionFilter !== 'all' && !activeIds.has(activitySectionFilter)) activitySectionFilter = 'all';
+      sectionSelect.innerHTML = `<option value="all">All sections</option>` + activeSections().map(section => `<option value="${esc(section.id)}">${esc(section.name)} · Grade ${esc(section.grade_level)}</option>`).join('');
+      sectionSelect.value = activitySectionFilter;
+    }
+    if ($('#activityStatusFilter')) $('#activityStatusFilter').value = activityStatusFilter;
+    if ($('#activitySort')) $('#activitySort').value = activitySort;
+    const activeCount = Number(activitySectionFilter !== 'all') + Number(activityStatusFilter !== 'all') + Number(activitySort !== 'newest');
+    const badge = $('#activityFilterBadge');
+    if (badge) { badge.textContent = String(activeCount); badge.hidden = activeCount === 0; }
+  }
+
+  function activityGroupsForDisplay() {
+    activityStatusFilter = ['all','posted','scheduled','archived'].includes(activityStatusFilter) ? activityStatusFilter : 'all';
+    activitySort = ['newest','name','name-desc','due'].includes(activitySort) ? activitySort : 'newest';
+    syncActivityFilterUi();
+    const groups = groupedAssignmentsForDisplay().filter(group => {
+      if (!group.length || isPerformanceTask(group[0])) return false;
+      if (activitySectionFilter !== 'all' && !group.some(item => item.section_id === activitySectionFilter)) return false;
+      return activityStatusFilter === 'all' || activityGroupState(group) === activityStatusFilter;
+    });
+    groups.sort((ga, gb) => {
+      const a = ga[0], b = gb[0];
+      const nameA = String(a?.title || ''), nameB = String(b?.title || '');
+      if (activitySort === 'name') return nameA.localeCompare(nameB, undefined, { sensitivity:'base' });
+      if (activitySort === 'name-desc') return nameB.localeCompare(nameA, undefined, { sensitivity:'base' });
+      if (activitySort === 'due') {
+        const ad = a?.due_at ? new Date(a.due_at).getTime() : Number.POSITIVE_INFINITY;
+        const bd = b?.due_at ? new Date(b.due_at).getTime() : Number.POSITIVE_INFINITY;
+        return ad - bd || nameA.localeCompare(nameB, undefined, { sensitivity:'base' });
+      }
+      return new Date(b?.created_at || b?.publish_at || 0) - new Date(a?.created_at || a?.publish_at || 0);
+    });
+    return groups;
+  }
+
+  updateAssignmentBulkToolbar = function() {
+    const validIds = state.assignments.map(assignment => assignment.id);
+    [...selectedAssignmentIds].forEach(id => { if (!validIds.includes(id)) selectedAssignmentIds.delete(id); });
+    const groups = activityGroupsForDisplay();
+    const selectedGroups = groups.filter(group => group.length && group.every(assignment => selectedAssignmentIds.has(assignment.id)));
+    const count = selectedGroups.length;
+    $('#selectedAssignmentCount') && ($('#selectedAssignmentCount').textContent = `${count} selected`);
+    $('#bulkDeleteAssignmentsBtn') && ($('#bulkDeleteAssignmentsBtn').disabled = count === 0);
+    $('#bulkArchiveAssignmentsBtn') && ($('#bulkArchiveAssignmentsBtn').disabled = count === 0 || selectedGroups.every(group => group.every(a => a.status === 'archived')));
+    const selectAll = $('#selectAllAssignments');
+    if (selectAll) {
+      selectAll.checked = groups.length > 0 && count === groups.length;
+      selectAll.indeterminate = count > 0 && count < groups.length;
+    }
+  };
+
   renderAssignments = function() {
     const list = $('#assignmentList');
     if (!list) return;
-    const groups = groupedAssignmentsForDisplay().filter(group => !isPerformanceTask(group[0]));
+    const allGroups = groupedAssignmentsForDisplay().filter(group => group.length && !isPerformanceTask(group[0]));
+    const groups = activityGroupsForDisplay();
     if (!groups.length) {
       selectedAssignmentIds.clear();
-      list.innerHTML = `<div class="assignment-empty v9-empty"><span class="v9-empty-icon">${iconSvg('assignment','assignment-line-icon')}</span><b>No activities yet</b><p>Create your first question-based Classwork activity.</p><button class="btn btn-orange" type="button" data-v9-new-assignment>＋ New activity</button></div>`;
+      const hasFilter = activitySectionFilter !== 'all' || activityStatusFilter !== 'all' || activitySort !== 'newest';
+      list.innerHTML = allGroups.length
+        ? `<div class="assignment-empty v9-empty"><span class="v9-empty-icon">⌁</span><b>No written works match these filters</b><p>Tap Filter and choose another section or status.</p></div>`
+        : `<div class="assignment-empty v9-empty"><span class="v9-empty-icon">${iconSvg('assignment','assignment-line-icon')}</span><b>No written works yet</b><p>Create your first question-based written work.</p><button class="btn btn-orange" type="button" data-v9-new-assignment>＋ New written work</button></div>`;
       return;
     }
     const cards = groups.map(group => {
@@ -141,11 +213,11 @@
       return `<article class="assignment-card assignment-group-card ${selected ? 'is-selected' : ''} ${scheduled ? 'assignment-scheduled' : ''} ${archived ? 'assignment-archived' : ''}">
         <label class="assignment-select-check"><input class="row-check" type="checkbox" data-select-assignment="${assignment.id}" data-assignment-group-ids="${esc(groupIdsAttr)}" ${selected ? 'checked' : ''}><span class="sr-only">Select ${esc(assignment.title)}</span></label>
         <div class="assignment-thumb">${assignment.image_url ? `<img src="${esc(assignment.image_url)}" alt="Activity image" data-assignment-storage-path="${esc(assignment.image_path || '')}">` : iconSvg('assignment','assignment-line-icon')}</div>
-        <div class="assignment-card-body"><div class="assignment-title-line"><h3>${esc(assignment.title)}</h3>${group.length > 1 ? '<span class="shared-assignment-badge">Shared activity</span>' : ''}${scheduled ? '<span class="scheduled-badge">Scheduled</span>' : ''}${archived ? '<span class="archived-badge">Archived</span>' : ''}</div><p>${esc(assignment.instructions || 'Classwork activity')}</p>${classList}<div class="assignment-meta">${classSummary}${scheduled ? `<span class="meta-chip scheduled-chip">Posts ${esc(formatDeadlineDate(assignment.publish_at))}</span>` : ''}${missingAnswers ? `<span class="meta-chip answer-key-warning">${missingAnswers} answer${missingAnswers===1?'':'s'} pending</span>` : ''}</div></div>
+        <div class="assignment-card-body"><div class="assignment-title-line"><h3>${esc(assignment.title)}</h3>${group.length > 1 ? '<span class="shared-assignment-badge">Shared written work</span>' : ''}${scheduled ? '<span class="scheduled-badge">Scheduled</span>' : ''}${archived ? '<span class="archived-badge">Archived</span>' : ''}</div><p>${esc(assignment.instructions || 'Written work')}</p>${classList}<div class="assignment-meta">${classSummary}${scheduled ? `<span class="meta-chip scheduled-chip">Posts ${esc(formatDeadlineDate(assignment.publish_at))}</span>` : ''}${missingAnswers ? `<span class="meta-chip answer-key-warning">${missingAnswers} answer${missingAnswers===1?'':'s'} pending</span>` : ''}</div></div>
         <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? '' : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
       </article>`;
     }).join('');
-    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all activities</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
+    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all written works</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
     updateAssignmentBulkToolbar();
   };
 
@@ -581,18 +653,63 @@
     }
   });
 
+  function performanceTaskGroupState(group) {
+    const a = group[0];
+    const archived = group.every(item => item.status === 'archived');
+    const scheduled = !archived && group.some(item => item.status === 'draft' && item.publish_at && new Date(item.publish_at).getTime() > Date.now());
+    return archived ? 'archived' : scheduled ? 'scheduled' : 'posted';
+  }
+
+  function syncPerformanceTaskFilterUi() {
+    const sectionSelect = $('#performanceTaskSectionFilter');
+    if (sectionSelect) {
+      const activeIds = new Set(activeSections().map(section => section.id));
+      if (performanceTaskSectionFilter !== 'all' && !activeIds.has(performanceTaskSectionFilter)) performanceTaskSectionFilter = 'all';
+      sectionSelect.innerHTML = `<option value="all">All sections</option>` + activeSections().map(section => `<option value="${esc(section.id)}">${esc(section.name)} · Grade ${esc(section.grade_level)}</option>`).join('');
+      sectionSelect.value = performanceTaskSectionFilter;
+    }
+    if ($('#performanceTaskStatusFilter')) $('#performanceTaskStatusFilter').value = performanceTaskStatusFilter;
+    if ($('#performanceTaskModeFilter')) $('#performanceTaskModeFilter').value = performanceTaskModeFilter;
+    if ($('#performanceTaskSort')) $('#performanceTaskSort').value = performanceTaskSort;
+    const activeCount = Number(performanceTaskSectionFilter !== 'all') + Number(performanceTaskStatusFilter !== 'all') + Number(performanceTaskModeFilter !== 'all') + Number(performanceTaskSort !== 'newest');
+    const badge = $('#performanceTaskFilterBadge');
+    if (badge) { badge.textContent = String(activeCount); badge.hidden = activeCount === 0; }
+  }
+
   function renderPerformanceTasks() {
     const list = $('#performanceTaskList');
     if (!list) return;
-    const groups = performanceGroups();
+    performanceTaskStatusFilter = ['all','posted','scheduled','archived'].includes(performanceTaskStatusFilter) ? performanceTaskStatusFilter : 'all';
+    performanceTaskModeFilter = ['all','individual','pair','group'].includes(performanceTaskModeFilter) ? performanceTaskModeFilter : 'all';
+    performanceTaskSort = ['newest','name','name-desc','due'].includes(performanceTaskSort) ? performanceTaskSort : 'newest';
+    syncPerformanceTaskFilterUi();
+    let groups = performanceGroups().filter(group => {
+      if (performanceTaskSectionFilter !== 'all' && !group.some(task => task.section_id === performanceTaskSectionFilter)) return false;
+      if (performanceTaskStatusFilter !== 'all' && performanceTaskGroupState(group) !== performanceTaskStatusFilter) return false;
+      const mode = group[0]?.collaboration_mode || 'individual';
+      return performanceTaskModeFilter === 'all' || mode === performanceTaskModeFilter;
+    });
+    groups.sort((ga, gb) => {
+      const a = ga[0], b = gb[0];
+      const nameA = String(a?.title || ''), nameB = String(b?.title || '');
+      if (performanceTaskSort === 'name') return nameA.localeCompare(nameB, undefined, { sensitivity:'base' });
+      if (performanceTaskSort === 'name-desc') return nameB.localeCompare(nameA, undefined, { sensitivity:'base' });
+      if (performanceTaskSort === 'due') {
+        const ad = a?.due_at ? new Date(a.due_at).getTime() : Number.POSITIVE_INFINITY;
+        const bd = b?.due_at ? new Date(b.due_at).getTime() : Number.POSITIVE_INFINITY;
+        return ad - bd || nameA.localeCompare(nameB, undefined, { sensitivity:'base' });
+      }
+      return new Date(b?.created_at || b?.publish_at || 0) - new Date(a?.created_at || a?.publish_at || 0);
+    });
     if (!groups.length) {
-      list.innerHTML = `<div class="assignment-empty v9-empty"><span class="v9-empty-icon">▣</span><b>No performance tasks yet</b><p>Post a task with instructions, pictures, rubric, deadline, and assigned sections.</p></div>`;
+      const hasFilter = performanceTaskSectionFilter !== 'all' || performanceTaskStatusFilter !== 'all' || performanceTaskModeFilter !== 'all' || performanceTaskSort !== 'newest';
+      list.innerHTML = `<div class="assignment-empty v9-empty"><span class="v9-empty-icon">▣</span><b>${hasFilter?'No performance tasks match these filters':'No performance tasks yet'}</b><p>${hasFilter?'Tap Filter and choose another section or status.':'Post a task with instructions, pictures, rubric, deadline, and assigned sections.'}</p></div>`;
       return;
     }
     list.innerHTML = groups.map(group => {
       const a = group[0], ids = group.map(x=>x.id), labels = groupSectionLabels(group);
-      const scheduled = a.status === 'draft' && a.publish_at && new Date(a.publish_at).getTime() > Date.now();
-      const archived = group.every(item => item.status === 'archived');
+      const scheduled = performanceTaskGroupState(group) === 'scheduled';
+      const archived = performanceTaskGroupState(group) === 'archived';
       const images = assignmentTaskImages(a);
       const classList = labels.length > 1 ? `<div class="assignment-class-list">${labels.map(x=>`<span>${esc(x)}</span>`).join('')}</div>` : '';
       return `<article class="assignment-card assignment-group-card performance-task-card performance-group-card ${scheduled?'assignment-scheduled':''} ${archived?'assignment-archived':''}">
@@ -603,6 +720,40 @@
     }).join('');
   }
   window.renderPerformanceTasks = renderPerformanceTasks;
+
+  function setCompactFilterPanel(buttonId, panelId, open) {
+    const button = $(buttonId), panel = $(panelId);
+    if (!button || !panel) return;
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  $('#activityFilterBtn')?.addEventListener('click', () => {
+    const panel = $('#activityFilterPanel');
+    setCompactFilterPanel('#activityFilterBtn', '#activityFilterPanel', Boolean(panel?.hidden));
+  });
+  $('#activityFilterClose')?.addEventListener('click', () => setCompactFilterPanel('#activityFilterBtn', '#activityFilterPanel', false));
+  $('#activityFilterDone')?.addEventListener('click', () => setCompactFilterPanel('#activityFilterBtn', '#activityFilterPanel', false));
+  $('#activitySectionFilter')?.addEventListener('change', event => { activitySectionFilter = event.currentTarget.value || 'all'; selectedAssignmentIds.clear(); renderAssignments(); });
+  $('#activityStatusFilter')?.addEventListener('change', event => { activityStatusFilter = event.currentTarget.value || 'all'; selectedAssignmentIds.clear(); renderAssignments(); });
+  $('#activitySort')?.addEventListener('change', event => { activitySort = event.currentTarget.value || 'newest'; selectedAssignmentIds.clear(); renderAssignments(); });
+  $('#activityClearFilters')?.addEventListener('click', () => {
+    activitySectionFilter = 'all'; activityStatusFilter = 'all'; activitySort = 'newest'; selectedAssignmentIds.clear(); renderAssignments();
+  });
+
+  $('#performanceTaskFilterBtn')?.addEventListener('click', () => {
+    const panel = $('#performanceTaskFilterPanel');
+    setCompactFilterPanel('#performanceTaskFilterBtn', '#performanceTaskFilterPanel', Boolean(panel?.hidden));
+  });
+  $('#performanceTaskFilterClose')?.addEventListener('click', () => setCompactFilterPanel('#performanceTaskFilterBtn', '#performanceTaskFilterPanel', false));
+  $('#performanceTaskFilterDone')?.addEventListener('click', () => setCompactFilterPanel('#performanceTaskFilterBtn', '#performanceTaskFilterPanel', false));
+  $('#performanceTaskSectionFilter')?.addEventListener('change', event => { performanceTaskSectionFilter = event.currentTarget.value || 'all'; renderPerformanceTasks(); });
+  $('#performanceTaskStatusFilter')?.addEventListener('change', event => { performanceTaskStatusFilter = event.currentTarget.value || 'all'; renderPerformanceTasks(); });
+  $('#performanceTaskModeFilter')?.addEventListener('change', event => { performanceTaskModeFilter = event.currentTarget.value || 'all'; renderPerformanceTasks(); });
+  $('#performanceTaskSort')?.addEventListener('change', event => { performanceTaskSort = event.currentTarget.value || 'newest'; renderPerformanceTasks(); });
+  $('#performanceTaskClearFilters')?.addEventListener('click', () => {
+    performanceTaskSectionFilter = 'all'; performanceTaskStatusFilter = 'all'; performanceTaskModeFilter = 'all'; performanceTaskSort = 'newest'; renderPerformanceTasks();
+  });
 
   async function getTeacherPerformanceGroups(assignmentId) {
     const result = await db.rpc('classside_get_performance_groups_for_teacher', { p_assignment_id: assignmentId });
@@ -683,8 +834,8 @@
       const previewModal = $('#assignmentPreviewModal');
       const topEyebrow = $(':scope > .modal-box > .eyebrow', previewModal);
       const detailsHeading = $('.assignment-preview-details h3', previewModal);
-      if (topEyebrow) topEyebrow.textContent = 'ACTIVITY PREVIEW';
-      if (detailsHeading) detailsHeading.textContent = 'Activity information';
+      if (topEyebrow) topEyebrow.textContent = 'WRITTEN WORK PREVIEW';
+      if (detailsHeading) detailsHeading.textContent = 'Written work information';
       const questionSection = $('.assignment-preview-questions', previewModal);
       if (questionSection) questionSection.hidden = false;
       const resources = $('#performancePreviewResources');
@@ -750,57 +901,112 @@
 
   function sortSubmissionRows(rows) {
     return [...rows].sort((a,b) => {
-      if (submissionSort === 'oldest') return new Date(a.submitted_at||0)-new Date(b.submitted_at||0);
-      if (submissionSort === 'name') return String(studentById(a.student_id)?.display_name||'').localeCompare(String(studentById(b.student_id)?.display_name||''));
-      if (submissionSort === 'gender') {
-        const order={Male:0,Female:1,'Prefer not to say':2,'Not specified':3},sa=studentById(a.student_id),sb=studentById(b.student_id);
-        return ((order[sa?.gender]??9)-(order[sb?.gender]??9)) || String(sa?.display_name||'').localeCompare(String(sb?.display_name||''));
-      }
+      const nameA = String(studentById(a.student_id)?.display_name || '');
+      const nameB = String(studentById(b.student_id)?.display_name || '');
+      if (submissionSort === 'name') return nameA.localeCompare(nameB, undefined, { sensitivity:'base' });
+      if (submissionSort === 'name-desc') return nameB.localeCompare(nameA, undefined, { sensitivity:'base' });
       return new Date(b.submitted_at||0)-new Date(a.submitted_at||0);
     });
   }
 
+  function isLateSubmission(s, a) {
+    if (!s?.submitted_at || !a?.due_at) return false;
+    const submittedAt = new Date(s.submitted_at).getTime();
+    const dueAt = new Date(a.due_at).getTime();
+    return Number.isFinite(submittedAt) && Number.isFinite(dueAt) && submittedAt > dueAt;
+  }
+
   function submissionCard(s) {
     const a = assignmentById(s.assignment_id), student = studentById(s.student_id), section = sectionById(a?.section_id), total = totalPoints(a?.id), graded = s.status === 'graded';
-    const shown = graded ? Number(s.teacher_score ?? 0) : (isPerformanceTask(a) ? null : Number(s.auto_score || 0));
+    const shown = isPerformanceTask(a)
+      ? (graded && s.teacher_score != null ? Number(s.teacher_score) : null)
+      : Number(s.teacher_score ?? s.auto_score ?? 0);
     const genderClass = student?.gender === 'Male' ? 'submission-male' : student?.gender === 'Female' ? 'submission-female' : 'submission-other';
-    return `<article class="submission-card ${genderClass}"><div class="submission-status-icon">${graded?iconSvg('check','assignment-line-icon'):iconSvg('inbox','assignment-line-icon')}</div><div class="submission-card-body"><div class="submission-student-row"><button type="button" class="submission-student-name" data-track-student-from-submissions="${student?.id||''}" data-track-section="${section?.id||''}">${esc(student?.display_name||'Student')}</button><span class="gender-pill">${esc(student?.gender||'Not specified')}</span></div><div class="submission-meta-grid"><span><small>Status</small><b>${esc(s.status)}</b></span><span><small>Score</small><b>${shown===null?'Pending':`${shown}/${total}`}</b></span><span><small>Attempt</small><b>${Number(s.attempt_count||1)}</b></span><span><small>Submitted</small><b>${esc(formatStudentDate(s.submitted_at)||'')}</b></span></div></div><button class="btn btn-orange submission-review-btn" data-review-submission="${s.id}">Review</button></article>`;
+    const late = isLateSubmission(s, a);
+    const mode = isPerformanceTask(a) ? (a?.collaboration_mode || 'individual') : 'individual';
+    const teamPill = mode === 'pair' ? '<span class="submission-team-pill">Pair submission</span>' : mode === 'group' ? '<span class="submission-team-pill">Group submission</span>' : '';
+    const submitterPrefix = mode === 'individual' ? '' : 'Leader: ';
+    return `<article class="submission-card ${genderClass}"><div class="submission-status-icon">${graded?iconSvg('check','assignment-line-icon'):iconSvg('inbox','assignment-line-icon')}</div><div class="submission-card-body"><div class="submission-student-row"><button type="button" class="submission-student-name" data-track-student-from-submissions="${student?.id||''}" data-track-section="${section?.id||''}">${submitterPrefix}${esc(student?.display_name||'Student')}</button><span class="gender-pill">${esc(student?.gender||'Not specified')}</span><span class="submission-review-pill ${graded?'is-checked':'is-new'}">${graded?'Checked':'New'}</span>${teamPill}${late?'<span class="submission-late-pill">Late</span>':''}</div><h3 class="submission-assignment-title">${esc(a?.title || (isPerformanceTask(a)?'Performance Task':'Written Work'))}</h3><p class="submission-class-label">${esc(sectionLabel(section))}</p><div class="submission-meta-grid"><span><small>Status</small><b>${graded?'Checked':'New'}</b></span><span><small>Score</small><b>${shown===null?'Pending':`${shown}/${total}`}</b></span><span><small>Timing</small><b>${late?'Late':'On time'}</b></span><span><small>Submitted</small><b>${esc(formatStudentDate(s.submitted_at)||'')}</b></span></div></div><button class="btn btn-orange submission-review-btn" data-review-submission="${s.id}">${graded?'Review again':'Review'}</button></article>`;
   }
 
   renderSubmissions = function() {
     const list = $('#submissionList'); if (!list) return;
-    submissionSort = submissionSort || 'newest';
+    submissionSort = ['newest','name','name-desc'].includes(submissionSort) ? submissionSort : 'newest';
+    submissionReviewFilter = ['all','new','checked'].includes(submissionReviewFilter) ? submissionReviewFilter : 'all';
+    submissionGroupMode = submissionGroupMode === 'combined' ? 'combined' : 'section';
     renderTypeTabs(); renderSubmissionSectionTabs();
     if ($('#submissionSort')) $('#submissionSort').value = submissionSort;
-    let rows = state.submissions.filter(s => workType(assignmentById(s.assignment_id)) === submissionWorkType && (submissionSectionId === 'all' || assignmentById(s.assignment_id)?.section_id === submissionSectionId));
+    if ($('#submissionGroupMode')) $('#submissionGroupMode').value = submissionGroupMode;
+
+    const scopedRows = state.submissions.filter(s => workType(assignmentById(s.assignment_id)) === submissionWorkType && (submissionSectionId === 'all' || assignmentById(s.assignment_id)?.section_id === submissionSectionId));
+    const statusCounts = {
+      all: scopedRows.length,
+      new: scopedRows.filter(s => s.status !== 'graded').length,
+      checked: scopedRows.filter(s => s.status === 'graded').length
+    };
+    $$('#submissionReviewTabs [data-submission-review-filter]').forEach(btn => {
+      const key = btn.dataset.submissionReviewFilter || 'all';
+      btn.classList.toggle('active', key === submissionReviewFilter);
+      const count = btn.querySelector('[data-review-count]');
+      if (count) count.textContent = String(statusCounts[key] || 0);
+    });
+
+    let rows = scopedRows.filter(s => submissionReviewFilter === 'all' || (submissionReviewFilter === 'checked' ? s.status === 'graded' : s.status !== 'graded'));
+    rows = sortSubmissionRows(rows);
     const uniqueStudents = new Set(rows.map(s=>s.student_id)).size;
     const selectedSection = submissionSectionId === 'all' ? null : sectionById(submissionSectionId);
-    const typeLabel = submissionWorkType === 'performance_task' ? 'Performance Tasks' : 'Activities';
-    $('#submissionSectionSummary').innerHTML = `<span><b>${rows.length}</b> submission${rows.length===1?'':'s'}</span><span><b>${uniqueStudents}</b> learner${uniqueStudents===1?'':'s'}</span><span><b>${typeLabel}</b></span>${selectedSection?`<span><b>${esc(selectedSection.name)}</b> · Grade ${esc(selectedSection.grade_level)}</span>`:`<span>Grouped by section, then ${submissionWorkType === 'performance_task' ? 'performance task' : 'activity'}</span>`}`;
-    if (!rows.length) { list.innerHTML = `<div class="assignment-empty v9-empty"><b>No ${typeLabel.toLowerCase()} submissions yet</b><p>Student work will appear here after submission.</p></div>`; return; }
+    const typeLabel = submissionWorkType === 'performance_task' ? 'Performance Tasks' : 'Written Works';
+    const activeFilterCount = Number(submissionSectionId !== 'all') + Number(submissionReviewFilter !== 'all') + Number(submissionGroupMode !== 'section') + Number(submissionSort !== 'newest');
+    const filterBadge = $('#submissionFilterBadge');
+    if (filterBadge) { filterBadge.textContent = String(activeFilterCount); filterBadge.hidden = activeFilterCount === 0; }
+    $('#submissionSectionSummary').innerHTML = `<span><b>${rows.length}</b> shown</span><span><b>${uniqueStudents}</b> learner${uniqueStudents===1?'':'s'}</span><span><b>${typeLabel}</b></span>${selectedSection?`<span>${esc(selectedSection.name)} · Grade ${esc(selectedSection.grade_level)}</span>`:''}`;
+    if (!rows.length) {
+      const emptyLabel = submissionReviewFilter === 'new' ? 'new submissions' : submissionReviewFilter === 'checked' ? 'checked submissions' : `${typeLabel.toLowerCase()} submissions`;
+      list.innerHTML = `<div class="assignment-empty v9-empty"><b>No ${emptyLabel}</b><p>Try another review-status or section filter.</p></div>`;
+      return;
+    }
+
+    if (submissionGroupMode === 'combined') {
+      list.innerHTML = `<section class="submission-combined-list">${rows.map(submissionCard).join('')}</section>`;
+      return;
+    }
+
     const sectionMap = new Map();
     rows.forEach(sub => {
       const assignment = assignmentById(sub.assignment_id); if (!assignment) return;
-      if (!sectionMap.has(assignment.section_id)) sectionMap.set(assignment.section_id, new Map());
-      const assignmentMap = sectionMap.get(assignment.section_id);
-      if (!assignmentMap.has(assignment.id)) assignmentMap.set(assignment.id, []);
-      assignmentMap.get(assignment.id).push(sub);
+      if (!sectionMap.has(assignment.section_id)) sectionMap.set(assignment.section_id, []);
+      sectionMap.get(assignment.section_id).push(sub);
     });
-    const sectionIds = [...sectionMap.keys()].sort((a,b)=>sectionLabel(sectionById(a)).localeCompare(sectionLabel(sectionById(b))));
+    const sectionIds = [...sectionMap.keys()].sort((a,b)=>sectionLabel(sectionById(a)).localeCompare(sectionLabel(sectionById(b)),undefined,{sensitivity:'base'}));
     list.innerHTML = sectionIds.map(sectionId => {
-      const section = sectionById(sectionId), assignmentMap = sectionMap.get(sectionId);
-      const assignmentIds = [...assignmentMap.keys()].sort((a,b)=>String(assignmentById(a)?.title||'').localeCompare(String(assignmentById(b)?.title||''),undefined,{sensitivity:'base'}));
-      const groups = assignmentIds.map(assignmentId => {
-        const assignment = assignmentById(assignmentId), subs = sortSubmissionRows(assignmentMap.get(assignmentId));
-        return `<section class="submission-activity-group"><header><div><span>${isPerformanceTask(assignment)?'PERFORMANCE TASK':'ACTIVITY'}</span><h3>${esc(assignment?.title || (isPerformanceTask(assignment) ? 'Performance Task' : 'Activity'))}</h3></div><div><b>${subs.length}</b><small>submission${subs.length===1?'':'s'}</small></div></header><div class="submission-activity-list">${subs.map(submissionCard).join('')}</div></section>`;
-      }).join('');
-      return `<section class="submission-section-group"><div class="submission-section-group-title"><span>${iconSvg('class','btn-icon')}</span><div><p>SECTION</p><h2>${esc(section?.name||'Class')}</h2><small>Grade ${esc(section?.grade_level||'')}</small></div></div>${groups}</section>`;
+      const section = sectionById(sectionId);
+      const sectionRows = sortSubmissionRows(sectionMap.get(sectionId));
+      return `<section class="submission-section-group"><div class="submission-section-group-title"><span>${iconSvg('class','btn-icon')}</span><div><p>SECTION</p><h2>${esc(section?.name||'Class')}</h2><small>Grade ${esc(section?.grade_level||'')} · ${sectionRows.length} submission${sectionRows.length===1?'':'s'}</small></div></div><div class="submission-activity-list submission-section-flat-list">${sectionRows.map(submissionCard).join('')}</div></section>`;
     }).join('');
   };
 
   $('#submissionTypeTabs')?.addEventListener('click', event => {
     const btn = event.target.closest('[data-submission-type]'); if (!btn) return;
-    submissionWorkType = btn.dataset.submissionType || 'written_work'; submissionSectionId = 'all'; renderSubmissions();
+    submissionWorkType = btn.dataset.submissionType || 'written_work';
+    renderSubmissions();
+  });
+
+  $('#submissionFilterBtn')?.addEventListener('click', () => {
+    const panel = $('#submissionFilterPanel');
+    setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', Boolean(panel?.hidden));
+  });
+  $('#submissionFilterClose')?.addEventListener('click', () => setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', false));
+  $('#submissionFilterDone')?.addEventListener('click', () => setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', false));
+  $('#submissionClearFilters')?.addEventListener('click', () => {
+    submissionSectionId = 'all'; submissionReviewFilter = 'all'; submissionGroupMode = 'section'; submissionSort = 'newest';
+    renderSubmissions();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', false);
+    setCompactFilterPanel('#activityFilterBtn', '#activityFilterPanel', false);
+    setCompactFilterPanel('#performanceTaskFilterBtn', '#performanceTaskFilterPanel', false);
   });
 
   // ---------------------------------------------------------------
@@ -906,7 +1112,8 @@
     await withLoading('Opening performance task…','Loading the student output pictures.', async () => {
       $('#reviewSubmissionTitle').textContent = a.title;
       if ($('#reviewSubmissionStudentName')) $('#reviewSubmissionStudentName').textContent = student?.display_name || 'Student';
-      $('#reviewSubmissionMeta').textContent = `${sectionLabel(sectionById(a.section_id))} · Performance Task · Submitted ${formatStudentDate(submission.submitted_at)||''}`;
+      const lateSubmission = isLateSubmission(submission, a);
+      $('#reviewSubmissionMeta').textContent = `${sectionLabel(sectionById(a.section_id))} · Performance Task · Submitted ${formatStudentDate(submission.submitted_at)||''}${lateSubmission ? ' · LATE SUBMISSION' : ''}`;
       $('#reviewSubmissionAnswers').innerHTML = `<article class="answer-question review-answer"><p class="eyebrow">TASK INSTRUCTIONS</p><p>${esc(a.instructions||'No additional instructions.')}</p></article>`;
       const teamBox = $('#reviewPerformanceTeamInfo');
       if (teamBox) { teamBox.hidden = true; teamBox.innerHTML = ''; }
@@ -946,7 +1153,11 @@
   // ---------------------------------------------------------------
   function performanceStatus(a) {
     const sub = submissionFor(a.id);
-    if (sub) return { label: sub.status === 'graded' ? 'Graded' : 'Submitted', cls: sub.status === 'graded' ? 'graded' : 'submitted' };
+    if (sub) {
+      const late = isLateSubmission(sub, a);
+      if (late) return { label: sub.status === 'graded' ? 'Graded · Late' : 'Submitted Late', cls:'late' };
+      return { label: sub.status === 'graded' ? 'Graded' : 'Submitted', cls: sub.status === 'graded' ? 'graded' : 'submitted' };
+    }
     if (a.status === 'archived') return { label:'Archived', cls:'archived' };
     if (a.due_at && new Date(a.due_at).getTime() < Date.now()) return { label:'Missed', cls:'missed' };
     return { label:'To do', cls:'not-started' };
@@ -1076,12 +1287,12 @@
     const files = [...($('#performanceOutputImages')?.files || [])];
     if (!files.length) return toast('Upload at least one picture of your output.', 'orange');
     if (files.length > 10) return toast('Choose up to 10 output pictures.', 'orange');
-    if (files.some(f => !String(f.type||'').startsWith('image/'))) return toast('Performance task outputs must be image files.', 'orange');
+    if (files.some(f => !String(f.type||'').startsWith('image/') && !isHeicImage(f))) return toast('Performance task outputs must be image files.', 'orange');
     const oldPaths = submissionOutputPaths(existing), newPaths = [];
     try {
       await withLoading('Submitting performance task…','Uploading your output pictures and saving your submission.', async () => {
         for (let i=0; i<files.length; i+=1) {
-          const f = await compressImageForUpload(files[i], { maxDimension: 1800, targetBytes: 650 * 1024 });
+          const f = await compressImageForUpload(files[i], { maxDimension: 1600, targetBytes: 450 * 1024, hardLimitBytes: 500 * 1024, quality: 0.80, minQuality: 0.50, minLongEdge: 900 });
           const path = `${state.user.id}/${a.id}/${Date.now()}-${i+1}-${safeFileName(f.name)}`;
           const up = await db.storage.from('classside-submission-proofs').upload(path, f, {upsert:false});
           if (up.error) throw up.error;
@@ -1104,7 +1315,8 @@
     if (!submission || !isPerformanceTask(a)) return originalOpenStudentResponsePreview(submissionId);
     const total = totalPoints(a.id), graded = submission.status === 'graded' && submission.teacher_score != null, score = graded ? Number(submission.teacher_score) : null;
     $('#studentResponseTitle').textContent = a.title;
-    $('#studentResponseMeta').textContent = `${sectionLabel(sectionById(a.section_id))} · Performance Task · Submitted ${formatStudentDate(submission.submitted_at)||''} · Attempt ${Number(submission.attempt_count||1)}`;
+    const responseWasLate = isLateSubmission(submission, a);
+    $('#studentResponseMeta').textContent = `${sectionLabel(sectionById(a.section_id))} · Performance Task · Submitted ${formatStudentDate(submission.submitted_at)||''}${responseWasLate ? ' · LATE SUBMISSION' : ''} · Attempt ${Number(submission.attempt_count||1)}`;
     $('#studentResponseScore').innerHTML = `<div><span>${graded?'Teacher score':'Status'}</span><b>${graded?`${score}<small>/ ${total}</small>`:'Awaiting review'}</b></div><span class="student-status ${graded?'status-graded':'status-submitted'}">${graded?'Graded':'Submitted'}</span>`;
     $('#studentResponseAnswers').innerHTML = `<article class="answer-question student-preview-answer"><p class="eyebrow">PERFORMANCE TASK</p><p>${esc(a.instructions||'')}</p></article>`;
     const links = await signedLinks('classside-submission-proofs', submissionOutputPaths(submission), 1800);

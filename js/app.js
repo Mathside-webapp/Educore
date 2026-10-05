@@ -93,6 +93,7 @@ let lastGeneratedAccounts = [];
 let lastGeneratedSection = null;
 let pendingStudentAction = null;
 let pendingAssignmentDeleteId = null;
+let pendingPasswordResetRequest = null;
 let pendingAssignmentDeleteIds = [];
 let editingAssignmentId = null;
 let editingAssignmentIds = [];
@@ -104,15 +105,23 @@ let studentTaskSort = 'newest';
 let studentTaskSearch = '';
 let activeStudentPanel = 'overview';
 let studentGradeWatchTimer = null;
+let studentWorkspacePollBusy = false;
+let studentWorkspaceSignature = '';
+let studentWorkspaceFullRefreshAt = 0;
+const STUDENT_WORKSPACE_POLL_MS = 60000;
+const STUDENT_WORKSPACE_FULL_REFRESH_MS = 15 * 60 * 1000;
 let studentLoginAlertsShownFor = null;
 let activeRosterSectionId = null;
 let studentRosterSearch = '';
 let studentRosterSort = 'gender';
 let submissionSectionId = 'all';
+let submissionReviewFilter = 'all';
+let submissionGroupMode = 'section';
 let submissionSort = 'newest';
 let activeTrackingStudentId = null;
 let loadingDepth = 0;
 const signedUrlCache = new Map();
+const submissionAnswerCache = new Map();
 
 const messageQueue = [];
 let messagePopupOpen = false;
@@ -151,6 +160,12 @@ function friendlyErrorMessage(error, fallback = 'Something went wrong. Please tr
   const raw = String(error?.message || error || '').trim();
   const lower = raw.toLowerCase();
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+  // HEIC/HEIF is common on iPhone/iPad. EduCore converts it before upload;
+  // if conversion cannot run, show a normal in-app message instead of Supabase's raw MIME error.
+  if (lower.includes('image/heic') || lower.includes('image/heif') || lower.includes('heic_conversion')) {
+    return 'This is an iPhone/iPad HEIC photo. EduCore could not convert it to a supported JPG image this time. Check your internet connection and try again, or choose a JPG/PNG photo.';
+  }
   const looksLikeNetworkError = offline
     || lower.includes('failed to fetch')
     || lower.includes('networkerror')
@@ -204,17 +219,50 @@ function safeFileName(name = 'file') {
     .replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(-100) || 'file';
 }
 
-// Compress phone photos in the browser before they are sent to Supabase Storage.
-// This keeps written work readable while greatly reducing the amount of storage used.
+function isHeicImage(file) {
+  if (!file) return false;
+  const type = String(file.type || '').toLowerCase();
+  const name = String(file.name || '').toLowerCase();
+  return type === 'image/heic'
+    || type === 'image/heif'
+    || type === 'image/heic-sequence'
+    || type === 'image/heif-sequence'
+    || /\.(heic|heif)$/.test(name);
+}
+
+async function convertHeicToJpeg(file) {
+  if (!isHeicImage(file)) return file;
+  if (typeof window.heic2any !== 'function') {
+    throw new Error('HEIC_CONVERSION_UNAVAILABLE');
+  }
+  try {
+    const converted = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.90 });
+    const blob = Array.isArray(converted) ? converted[0] : converted;
+    if (!blob) throw new Error('HEIC conversion returned no image.');
+    const baseName = String(file.name || 'iphone-photo').replace(/\.(heic|heif)$/i, '') || 'iphone-photo';
+    return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+  } catch (error) {
+    console.warn('HEIC conversion failed', error);
+    throw new Error('HEIC_CONVERSION_FAILED');
+  }
+}
+
+// Convert iPhone HEIC photos when needed, then compress phone photos in the
+// browser before they are sent to Supabase Storage. This keeps written work
+// readable while greatly reducing storage usage.
 async function compressImageForUpload(file, options = {}) {
-  if (!file || !String(file.type || '').startsWith('image/')) return file;
+  if (!file || !String(file.type || '').startsWith('image/') && !isHeicImage(file)) return file;
+  file = await convertHeicToJpeg(file);
   const supportedInput = new Set(['image/jpeg', 'image/png', 'image/webp']);
   if (!supportedInput.has(String(file.type || '').toLowerCase())) return file;
 
   const maxDimension = Math.max(800, Number(options.maxDimension || 1800));
   const targetBytes = Math.max(200 * 1024, Number(options.targetBytes || 700 * 1024));
-  const initialQuality = Math.min(0.92, Math.max(0.60, Number(options.quality || 0.82)));
-  const minQuality = Math.min(initialQuality, Math.max(0.48, Number(options.minQuality || 0.58)));
+  const initialQuality = Math.min(0.92, Math.max(0.58, Number(options.quality || 0.82)));
+  const minQuality = Math.min(initialQuality, Math.max(0.46, Number(options.minQuality || 0.56)));
+  const minLongEdge = Math.max(800, Number(options.minLongEdge || 900));
+  const hardLimitBytes = Math.max(targetBytes, Number(options.hardLimitBytes || Math.round(targetBytes * 1.12)));
+  const maxResizeRounds = Math.max(3, Math.min(7, Number(options.maxResizeRounds || 5)));
 
   let bitmap = null;
   let objectUrl = '';
@@ -253,17 +301,41 @@ async function compressImageForUpload(file, options = {}) {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not compress the selected image.')), 'image/webp', quality);
     });
 
-    // First lower JPEG/WebP quality a little, then reduce dimensions if a very
-    // large phone photo is still above the target size.
-    for (let resizeRound = 0; resizeRound < 3; resizeRound += 1) {
-      for (let quality = initialQuality; quality >= minQuality - 0.001; quality -= 0.08) {
+    // First lower WebP quality, then gently reduce dimensions only when the
+    // image is still over the requested target. Student solution photos use a
+    // ~450 KB target; the extra resize rounds make that target much more
+    // reliable without immediately sacrificing handwriting readability.
+    for (let resizeRound = 0; resizeRound < maxResizeRounds; resizeRound += 1) {
+      for (let quality = initialQuality; quality >= minQuality - 0.001; quality -= 0.07) {
         const blob = await encode(width, height, Math.max(minQuality, quality));
         if (!bestBlob || blob.size < bestBlob.size) bestBlob = blob;
         if (blob.size <= targetBytes) break;
       }
-      if (bestBlob?.size <= targetBytes || Math.max(width, height) <= 1100) break;
-      width = Math.max(1, Math.round(width * 0.84));
-      height = Math.max(1, Math.round(height * 0.84));
+      if (bestBlob?.size <= targetBytes || Math.max(width, height) <= minLongEdge) break;
+      width = Math.max(1, Math.round(width * 0.86));
+      height = Math.max(1, Math.round(height * 0.86));
+    }
+
+    // One final pass near the readability floor provides a small safety buffer
+    // for unusually detailed phone photos. It still never shrinks below the
+    // configured long-edge floor unless the source image was already smaller.
+    if (bestBlob?.size > targetBytes && Math.max(width, height) > minLongEdge) {
+      const lastScale = minLongEdge / Math.max(width, height);
+      width = Math.max(1, Math.round(width * lastScale));
+      height = Math.max(1, Math.round(height * lastScale));
+      const finalBlob = await encode(width, height, minQuality);
+      if (!bestBlob || finalBlob.size < bestBlob.size) bestBlob = finalBlob;
+    }
+
+    // Student-photo calls use a 500 KB hard ceiling. Only unusually detailed
+    // images that remain above it are reduced one last time to an 800 px long
+    // edge; ordinary handwritten pages stay at the larger dimensions above.
+    if (bestBlob?.size > hardLimitBytes && Math.max(width, height) > 800) {
+      const emergencyScale = 800 / Math.max(width, height);
+      const emergencyWidth = Math.max(1, Math.round(width * emergencyScale));
+      const emergencyHeight = Math.max(1, Math.round(height * emergencyScale));
+      const emergencyBlob = await encode(emergencyWidth, emergencyHeight, Math.min(minQuality, 0.48));
+      if (!bestBlob || emergencyBlob.size < bestBlob.size) bestBlob = emergencyBlob;
     }
 
     if (!bestBlob || (bestBlob.size >= file.size && file.size <= targetBytes)) return file;
@@ -348,6 +420,9 @@ function requireSupabase() {
 function resetState() {
   stopStudentGradeWatcher();
   studentLoginAlertsShownFor = null;
+  studentWorkspacePollBusy = false;
+  studentWorkspaceSignature = '';
+  studentWorkspaceFullRefreshAt = 0;
   state.user = null;
   state.profile = null;
   state.sections = [];
@@ -361,7 +436,9 @@ function resetState() {
   lastGeneratedAccounts = [];
   lastGeneratedSection = null;
   pendingStudentAction = null;
+  pendingPasswordResetRequest = null;
   signedUrlCache.clear();
+  submissionAnswerCache.clear();
 }
 
 async function signedUrl(bucket, path, seconds = 3600) {
@@ -412,7 +489,7 @@ function studentsForSection(sectionId) {
 function sectionLabel(section) { return section ? `${section.name} · Grade ${section.grade_level}` : 'Unknown class'; }
 function workType(assignment) { return assignment?.work_type === 'performance_task' ? 'performance_task' : 'written_work'; }
 function isPerformanceTask(assignment) { return workType(assignment) === 'performance_task'; }
-function workTypeLabel(assignment) { return isPerformanceTask(assignment) ? 'Performance Task' : 'Activity'; }
+function workTypeLabel(assignment) { return isPerformanceTask(assignment) ? 'Performance Task' : 'Written Work'; }
 function totalPoints(assignmentId) {
   const assignment = assignmentById(assignmentId);
   return isPerformanceTask(assignment)
@@ -520,23 +597,69 @@ function notifyUnseenStudentGrades() {
   writeSeenGradeNotices(seen);
 }
 
+function latestWorkspaceItem(items = []) {
+  return [...items].sort((a, b) => new Date(b?.updated_at || b?.created_at || 0).getTime() - new Date(a?.updated_at || a?.created_at || 0).getTime())[0] || null;
+}
+
+function studentWorkspaceSignatureFromState() {
+  const assignment = latestWorkspaceItem(state.assignments.filter(a => a.status === 'published'));
+  const submission = latestWorkspaceItem(state.submissions);
+  return [
+    assignment ? `${assignment.id}:${assignment.updated_at || assignment.created_at || ''}` : 'no-assignment',
+    submission ? `${submission.id}:${submission.updated_at || submission.submitted_at || ''}` : 'no-submission'
+  ].join('|');
+}
+
+async function fetchStudentWorkspaceSignature() {
+  if (!db || !state.user?.id) return studentWorkspaceSignature;
+  const studentId = state.user.id;
+  const [assignmentRes, submissionRes] = await Promise.all([
+    db.from('classside_assignments')
+      .select('id,updated_at,created_at,status')
+      .eq('status', 'published')
+      .order('updated_at', { ascending: false })
+      .limit(1),
+    db.from('classside_submissions')
+      .select('id,updated_at,submitted_at,status,graded_at')
+      .eq('student_id', studentId)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+  ]);
+  if (assignmentRes.error) throw assignmentRes.error;
+  if (submissionRes.error) throw submissionRes.error;
+  const assignment = assignmentRes.data?.[0] || null;
+  const submission = submissionRes.data?.[0] || null;
+  return [
+    assignment ? `${assignment.id}:${assignment.updated_at || assignment.created_at || ''}` : 'no-assignment',
+    submission ? `${submission.id}:${submission.updated_at || submission.submitted_at || ''}` : 'no-submission'
+  ].join('|');
+}
+
 async function checkStudentGradeUpdates() {
   if (!db || state.profile?.role !== 'student' || !state.user?.id) return;
+  if (studentWorkspacePollBusy || document.visibilityState !== 'visible' || !navigator.onLine) return;
+  studentWorkspacePollBusy = true;
   try {
-    // Reload the student workspace so newly scheduled assignments also appear
-    // automatically after Supabase Cron publishes them.
+    // Keep the 60-second schedule responsiveness, but only ask Supabase for the
+    // newest assignment/submission timestamps. A full workspace reload happens
+    // only when something actually changed.
+    const remoteSignature = await fetchStudentWorkspaceSignature();
+    const periodicRefreshDue = !studentWorkspaceFullRefreshAt || Date.now() - studentWorkspaceFullRefreshAt >= STUDENT_WORKSPACE_FULL_REFRESH_MS;
+    if (remoteSignature === studentWorkspaceSignature && !periodicRefreshDue) return;
     await loadStudentData();
     notifyUnseenStudentGrades();
     renderStudentDashboard();
     showStudentPanel(activeStudentPanel);
   } catch (error) {
     console.warn('Student workspace refresh skipped:', error?.message || error);
+  } finally {
+    studentWorkspacePollBusy = false;
   }
 }
 
 function startStudentGradeWatcher() {
   stopStudentGradeWatcher();
-  studentGradeWatchTimer = window.setInterval(checkStudentGradeUpdates, 60000);
+  studentGradeWatchTimer = window.setInterval(checkStudentGradeUpdates, STUDENT_WORKSPACE_POLL_MS);
 }
 
 function stopStudentGradeWatcher() {
@@ -747,7 +870,6 @@ $('#studentSignout').addEventListener('click', () => signOut('See you next time.
 
 // ---------- DATA LOADING ----------
 async function loadTeacherData() {
-  signedUrlCache.clear();
   const teacherId = state.user.id;
   const [sectionsRes, membersRes, studentsRes, assignmentsRes] = await Promise.all([
     db.from('classside_sections').select('*').eq('teacher_id', teacherId).order('grade_level').order('name'),
@@ -765,6 +887,7 @@ async function loadTeacherData() {
   state.questions = [];
   state.keys = [];
   state.submissions = [];
+  submissionAnswerCache.clear();
   if (assignmentIds.length) {
     const [questionsRes, submissionsRes] = await Promise.all([
       db.from('classside_questions').select('*').in('assignment_id', assignmentIds).order('position'),
@@ -790,7 +913,6 @@ async function loadTeacherData() {
 }
 
 async function loadStudentData() {
-  signedUrlCache.clear();
   const studentId = state.user.id;
   const [sectionsRes, membersRes, assignmentsRes, submissionsRes] = await Promise.all([
     db.from('classside_sections').select('*').order('grade_level').order('name'),
@@ -827,6 +949,8 @@ async function loadStudentData() {
       ? await signedUrl('classside-assignment-images', assignment.image_path)
       : '';
   }));
+  studentWorkspaceSignature = studentWorkspaceSignatureFromState();
+  studentWorkspaceFullRefreshAt = Date.now();
 }
 
 async function refreshTeacher() {
@@ -1183,17 +1307,14 @@ async function downloadResetPasswordsExcel(accounts, section) {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-$('#bulkResetPasswordsBtn')?.addEventListener('click', async () => {
-  const section = sectionById(activeRosterSectionId);
-  if (!section) return toast('Open a class roster first.', 'orange');
-  const ids = studentsForSection(activeRosterSectionId).map(student => student.id).filter(id => selectedStudentIds.has(id));
-  if (!ids.length) return toast('Select at least one student first.', 'orange');
-
+async function runPendingPasswordReset() {
+  const request = pendingPasswordResetRequest;
+  if (!request) return;
+  pendingPasswordResetRequest = null;
+  const section = sectionById(request.sectionId);
+  const ids = request.studentIds || [];
   const selected = ids.map(studentById).filter(Boolean);
-  const label = selected.length === 1 ? selected[0].display_name : `${selected.length} selected students`;
-  const approved = window.confirm(`Reset the password for ${label}?\n\nThe old password will stop working for future sign-ins. EduCore will immediately download an Excel file containing the new temporary password${selected.length === 1 ? '' : 's'}.`);
-  if (!approved) return;
-
+  if (!section || !ids.length) return toast('The selected class or students are no longer available.', 'orange');
   try {
     let result = null;
     await withLoading('Resetting passwords…', `Generating new temporary password${selected.length === 1 ? '' : 's'} securely.`, async () => {
@@ -1218,6 +1339,24 @@ $('#bulkResetPasswordsBtn')?.addEventListener('click', async () => {
     console.error('RESET STUDENT PASSWORD ERROR', error);
     toast(friendlyErrorMessage(error, 'Could not reset the selected student passwords. Please try again.'), 'orange');
   }
+}
+
+$('#bulkResetPasswordsBtn')?.addEventListener('click', () => {
+  const section = sectionById(activeRosterSectionId);
+  if (!section) return toast('Open a class roster first.', 'orange');
+  const ids = studentsForSection(activeRosterSectionId).map(student => student.id).filter(id => selectedStudentIds.has(id));
+  if (!ids.length) return toast('Select at least one student first.', 'orange');
+  const selected = ids.map(studentById).filter(Boolean);
+  const label = selected.length === 1 ? selected[0].display_name : `${selected.length} selected students`;
+  pendingPasswordResetRequest = { sectionId: section.id, studentIds: [...ids] };
+  const text = $('#passwordResetConfirmText');
+  if (text) text.textContent = `Reset the password for ${label}? The old password will stop working after the reset.`;
+  openDialog('passwordResetConfirmModal');
+});
+
+$('#confirmPasswordResetBtn')?.addEventListener('click', async () => {
+  closeDialog('passwordResetConfirmModal');
+  await runPendingPasswordReset();
 });
 
 function renderStudentTracking(sectionId, studentId) {
@@ -2924,16 +3063,17 @@ function renderStudentAssignments() {
     const taskState = studentAssignmentState(a);
     const due = formatDeadlineDate(a.due_at);
     const overdue = !submitted && a.due_at && new Date(a.due_at).getTime() < Date.now();
+    const lateSubmission = Boolean(submitted && a.due_at && submitted.submitted_at && new Date(submitted.submitted_at).getTime() > new Date(a.due_at).getTime());
     let status = overdue ? 'Missed' : 'Ongoing';
     let statusClass = overdue ? 'status-overdue' : 'status-todo';
     if (a.status === 'archived') {
       status = submitted ? 'Submitted · Archived' : 'Archived';
       statusClass = 'status-submitted';
     } else if (submitted) {
-      status = 'Submitted';
-      statusClass = 'status-submitted';
+      status = lateSubmission ? 'Submitted Late' : 'Submitted';
+      statusClass = lateSubmission ? 'status-late' : 'status-submitted';
       if (submitted.resubmit_allowed) {
-        status = 'Submitted · New attempt allowed';
+        status = `${lateSubmission ? 'Submitted Late' : 'Submitted'} · New attempt allowed`;
         statusClass = 'status-todo';
       }
     }
@@ -2948,7 +3088,7 @@ function renderStudentAssignments() {
         <div class="assignment-meta">
           ${section?.grade_level ? `<span class="meta-chip">Grade ${esc(section.grade_level)}</span>` : ''}
           <span class="meta-chip">${qs.length} question${qs.length === 1 ? '' : 's'}</span>
-          ${due ? `<span class="meta-chip deadline-chip ${overdue ? 'meta-overdue' : ''}">${overdue ? 'Past due' : 'Deadline'} ${esc(due)}</span>` : `<span class="meta-chip deadline-chip no-deadline">No deadline</span>`}
+          ${due ? `<span class="meta-chip deadline-chip ${(overdue || lateSubmission) ? 'meta-overdue' : ''}">${lateSubmission ? 'Submitted late · Deadline' : overdue ? 'Past due' : 'Deadline'} ${esc(due)}</span>` : `<span class="meta-chip deadline-chip no-deadline">No deadline</span>`}
           ${submitted?.attempt_count ? `<span class="meta-chip">Attempt ${Number(submitted.attempt_count)}</span>` : ''}
         </div>
         ${submitted?.feedback ? `<div class="student-inline-feedback"><b>Teacher feedback:</b> ${esc(submitted.feedback)}</div>` : ''}
@@ -3042,7 +3182,8 @@ async function openStudentResponsePreview(submissionId) {
   const total = totalPoints(assignment.id);
   const shownScore = submission.status === 'graded' && submission.teacher_score != null ? Number(submission.teacher_score) : Number(submission.auto_score || 0);
   $('#studentResponseTitle').textContent = assignment.title;
-  $('#studentResponseMeta').textContent = `${sectionLabel(sectionById(assignment.section_id))} · Submitted ${formatStudentDate(submission.submitted_at) || ''} · Attempt ${Number(submission.attempt_count || 1)}`;
+  const responseWasLate = Boolean(assignment.due_at && submission.submitted_at && new Date(submission.submitted_at).getTime() > new Date(assignment.due_at).getTime());
+  $('#studentResponseMeta').textContent = `${sectionLabel(sectionById(assignment.section_id))} · Submitted ${formatStudentDate(submission.submitted_at) || ''}${responseWasLate ? ' · LATE SUBMISSION' : ''} · Attempt ${Number(submission.attempt_count || 1)}`;
   $('#studentResponseScore').innerHTML = `<div><span>${submission.status === 'graded' ? 'Teacher score' : 'Auto-check score'}</span><b>${shownScore}<small>/ ${total}</small></b></div><span class="student-status ${submission.status === 'graded' ? 'status-graded' : 'status-submitted'}">${submission.status === 'graded' ? 'Graded' : 'Submitted'}</span>`;
   $('#studentResponseAnswers').innerHTML = qs.map((q, i) => {
     const answer = answers.find(a => a.question_id === q.id);
@@ -3138,7 +3279,7 @@ $('#answerForm').addEventListener('submit', async event => {
   });
   const proofFiles = [...($('#studentSolutionImage')?.files || [])];
   if (!proofFiles.length) return toast('Upload at least one clear photo of your written work before submitting.', 'orange');
-  if (proofFiles.some(file => !String(file.type || '').startsWith('image/'))) return toast('Solution uploads must be image files.', 'orange');
+  if (proofFiles.some(file => !String(file.type || '').startsWith('image/') && !isHeicImage(file))) return toast('Solution uploads must be image files.', 'orange');
   if (proofFiles.length > 10) return toast('Choose up to 10 work pictures for one submission.', 'orange');
 
   const previousProofPaths = submissionProofPaths(submissionFor(activeStudentAssignment.id));
@@ -3147,7 +3288,7 @@ $('#answerForm').addEventListener('submit', async event => {
     let rpcResult;
     await withLoading('Submitting your answers…', `Uploading ${proofFiles.length} work picture${proofFiles.length === 1 ? '' : 's'} and saving your answers.`, async () => {
       for (let index = 0; index < proofFiles.length; index += 1) {
-        const proofFile = await compressImageForUpload(proofFiles[index], { maxDimension: 1800, targetBytes: 650 * 1024 });
+        const proofFile = await compressImageForUpload(proofFiles[index], { maxDimension: 1600, targetBytes: 450 * 1024, hardLimitBytes: 500 * 1024, quality: 0.80, minQuality: 0.50, minLongEdge: 900 });
         const proofPath = `${state.user.id}/${activeStudentAssignment.id}/${Date.now()}-${index + 1}-${safeFileName(proofFile.name)}`;
         const uploadRes = await db.storage.from('classside-submission-proofs').upload(proofPath, proofFile, { upsert: false });
         if (uploadRes.error) throw uploadRes.error;
@@ -3251,6 +3392,16 @@ $('#submissionSectionTabs')?.addEventListener('click', event => {
   submissionSectionId = btn.dataset.submissionSection || 'all';
   renderSubmissions();
 });
+$('#submissionReviewTabs')?.addEventListener('click', event => {
+  const btn = event.target.closest('[data-submission-review-filter]');
+  if (!btn) return;
+  submissionReviewFilter = btn.dataset.submissionReviewFilter || 'all';
+  renderSubmissions();
+});
+$('#submissionGroupMode')?.addEventListener('change', event => {
+  submissionGroupMode = event.currentTarget.value || 'section';
+  renderSubmissions();
+});
 $('#submissionSort')?.addEventListener('change', event => {
   submissionSort = event.currentTarget.value || 'newest';
   renderSubmissions();
@@ -3276,17 +3427,23 @@ async function openSubmissionReview(submissionId) {
   const qs = questionsFor(assignment.id);
   try {
     await withLoading('Opening submission…', 'Loading answers and uploaded work.', async () => {
-      const answersRes = await db.from('classside_submission_answers').select('*').eq('submission_id', submissionId);
-      if (answersRes.error) throw answersRes.error;
-      const answers = answersRes.data || [];
+      let answers = submissionAnswerCache.get(submissionId);
+      if (!answers) {
+        const answersRes = await db.from('classside_submission_answers').select('*').eq('submission_id', submissionId);
+        if (answersRes.error) throw answersRes.error;
+        answers = answersRes.data || [];
+        submissionAnswerCache.set(submissionId, answers);
+      }
       $('#reviewSubmissionTitle').textContent = assignment.title;
       $('#reviewSubmissionStudentName').textContent = student?.display_name || 'Student';
       const reviewTotal = totalPoints(assignment.id);
       const hasManualScore = submission.teacher_score != null;
       const hasManualAnswerReview = answers.some(answer => answer.manual_is_correct !== null && answer.manual_is_correct !== undefined);
+      const reviewWasLate = Boolean(assignment.due_at && submission.submitted_at && new Date(submission.submitted_at).getTime() > new Date(assignment.due_at).getTime());
+      const reviewTiming = ` · Submitted ${formatStudentDate(submission.submitted_at) || ''}${reviewWasLate ? ' · LATE SUBMISSION' : ''}`;
       $('#reviewSubmissionMeta').textContent = hasManualScore
-        ? `${sectionLabel(sectionById(assignment.section_id))} · ${hasManualAnswerReview ? 'Manual-review score' : 'Teacher score'} ${Number(submission.teacher_score)}/${reviewTotal} · Auto-check ${Number(submission.auto_score || 0)}/${reviewTotal}`
-        : `${sectionLabel(sectionById(assignment.section_id))} · Auto-check ${Number(submission.auto_score || 0)}/${reviewTotal} · No manual score yet`;
+        ? `${sectionLabel(sectionById(assignment.section_id))} · ${hasManualAnswerReview ? 'Manual-review score' : 'Teacher score'} ${Number(submission.teacher_score)}/${reviewTotal} · Auto-check ${Number(submission.auto_score || 0)}/${reviewTotal}${reviewTiming}`
+        : `${sectionLabel(sectionById(assignment.section_id))} · Auto-check ${Number(submission.auto_score || 0)}/${reviewTotal} · No manual score yet${reviewTiming}`;
       $('#reviewSubmissionAnswers').innerHTML = qs.map((q,i) => {
         const answer = answers.find(a => a.question_id === q.id);
         const key = keyFor(q.id);
@@ -3502,7 +3659,7 @@ $('#gradeForm').addEventListener('submit', async event => {
   try {
     let cleanupResult = { deleted: 0, warning: '' };
     await withLoading('Saving grade…', hasManualAnswerReview ? 'Saving manual answer checks, recomputing the score, and clearing reviewed work pictures.' : 'Updating the student score, feedback, and clearing reviewed work pictures.', async () => {
-      const { error } = await db.rpc('classside_save_submission_review', {
+      const { data: reviewResult, error } = await db.rpc('classside_save_submission_review', {
         p_submission_id: activeSubmissionId,
         p_teacher_score: hasManualAnswerReview ? null : score,
         p_feedback: feedback || null,
@@ -3510,11 +3667,33 @@ $('#gradeForm').addEventListener('submit', async event => {
       });
       if (error) throw error;
 
+      // Update only the reviewed submission locally instead of reloading the
+      // complete teacher workspace after every saved grade.
+      const savedAt = new Date().toISOString();
+      submission.teacher_score = reviewResult?.teacher_score ?? null;
+      submission.feedback = feedback || null;
+      submission.status = 'graded';
+      submission.graded_at = savedAt;
+      submission.updated_at = savedAt;
+
+      const cachedAnswers = submissionAnswerCache.get(activeSubmissionId);
+      if (cachedAnswers) {
+        answerReviews.forEach(review => {
+          const answer = cachedAnswers.find(item => item.question_id === review.question_id);
+          if (!answer) return;
+          if (review.manual_review) {
+            answer.manual_is_correct = Boolean(review.is_correct);
+            const question = state.questions.find(item => item.id === review.question_id);
+            answer.awarded_points = review.is_correct ? Number(question?.max_points || 0) : 0;
+          }
+          answer.teacher_comment = review.teacher_comment || null;
+        });
+      }
+
       // Once the teacher has saved the final grade, the uploaded proof pictures
       // are no longer needed for checking. Delete them to keep Supabase Storage small.
       cleanupResult = await cleanupGradedSubmissionProofs(submission);
       closeDialog('reviewSubmissionModal');
-      await refreshTeacher();
       showTeacherView('submissions');
     });
     if (cleanupResult.warning) {

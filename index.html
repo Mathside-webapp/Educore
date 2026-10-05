@@ -14,7 +14,7 @@
 <link href="assets/educore-logos/educore-general-32.png?v=305" rel="icon" sizes="32x32" type="image/png"/>
 <link href="manifest.webmanifest" rel="manifest"/>
 <link href="icons/educore-apple-touch-icon.png?v=305" rel="apple-touch-icon" sizes="180x180"/>
-<link href="css/styles.css?v=12.2" rel="stylesheet"/>
+<link href="css/styles.css?v=13.0" rel="stylesheet"/>
 <link href="css/art-theme.css?v=7.0" rel="stylesheet"/>
 <link href="css/student-v8.css?v=10.5" rel="stylesheet"/>
 <link href="css/design-v9.css?v=9.1" rel="stylesheet"/>
@@ -172,32 +172,32 @@
 <div class="class-grid" id="classGrid"></div>
 </section>
 <section class="app-view" id="view-assignments">
-<div class="section-row"><div><p class="eyebrow">CLASSWORK</p><h2>Written Works</h2><p class="muted">Post question-based Learning activities to one or more classes.</p></div><button class="btn btn-orange" id="postAssignmentBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New activity</button></div>
+<div class="section-row"><div><p class="eyebrow">CLASSWORK</p><h2>Written Works</h2><p class="muted">Post question-based learning activities to one or more classes.</p></div><div class="row-actions"><button class="btn btn-light compact-filter-button" id="activityFilterBtn" type="button" aria-expanded="false" aria-controls="activityFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="activityFilterBadge" class="filter-count-badge" hidden>0</span></button><button class="btn btn-orange" id="postAssignmentBtn"><svg aria-hidden="true" class="btn-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New written work</button></div></div>
+<div class="compact-filter-wrap"><div id="activityFilterPanel" class="compact-filter-panel" hidden>
+<div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER WRITTEN WORKS</p><h3>Show only what you need</h3></div><button type="button" class="icon-button compact-filter-close" id="activityFilterClose" aria-label="Close filters">×</button></div>
+<div class="performance-task-filter-grid"><label>Section<select id="activitySectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="activityStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option><option value="archived">Archived</option></select></label><label>Order<select id="activitySort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
+<div class="compact-filter-actions"><button type="button" class="btn btn-light" id="activityClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="activityFilterDone">Done</button></div>
+</div></div>
 <div class="assignment-list" id="assignmentList"></div>
 </section>
 <section class="app-view" id="view-performance">
-<div class="section-row"><div><p class="eyebrow">PERFORMANCE TASK</p><h2>Performance Tasks</h2><p class="muted">Post project-based tasks with instructions, pictures, rubric, deadlines, reminders, and assigned sections.</p></div><button class="btn btn-orange" id="postPerformanceTaskBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New performance task</button></div>
+<div class="section-row"><div><p class="eyebrow">PERFORMANCE TASK</p><h2>Performance Tasks</h2><p class="muted">Post project-based tasks with instructions, pictures, rubric, deadlines, reminders, and assigned sections.</p></div><div class="row-actions"><button class="btn btn-light compact-filter-button" id="performanceTaskFilterBtn" type="button" aria-expanded="false" aria-controls="performanceTaskFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="performanceTaskFilterBadge" class="filter-count-badge" hidden>0</span></button><button class="btn btn-orange" id="postPerformanceTaskBtn"><svg aria-hidden="true" class="btn-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New performance task</button></div></div>
+<div class="compact-filter-wrap"><div id="performanceTaskFilterPanel" class="compact-filter-panel" hidden>
+<div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER PERFORMANCE TASKS</p><h3>Show only what you need</h3></div><button type="button" class="icon-button compact-filter-close" id="performanceTaskFilterClose" aria-label="Close filters">×</button></div>
+<div class="performance-task-filter-grid"><label>Section<select id="performanceTaskSectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="performanceTaskStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option><option value="archived">Archived</option></select></label><label>Work setup<select id="performanceTaskModeFilter"><option value="all">All setups</option><option value="individual">Individual</option><option value="pair">Pair</option><option value="group">Group</option></select></label><label>Order<select id="performanceTaskSort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
+<div class="compact-filter-actions"><button type="button" class="btn btn-light" id="performanceTaskClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="performanceTaskFilterDone">Done</button></div>
+</div></div>
 <div class="assignment-list" id="performanceTaskList"></div>
 </section>
 <section class="app-view" id="view-submissions">
-<div class="section-row"><div><p class="eyebrow">STUDENT WORK</p><h2>Submissions</h2><p class="muted">Choose a class, then review only the learners who submitted work.</p></div></div>
-<div aria-label="Submission category" class="submission-kind-tabs" id="submissionTypeTabs" role="tablist">
-<button class="submission-kind-tab active" data-submission-type="written_work" type="button">Written Works <span id="writtenSubmissionCount">0</span></button>
-<button class="submission-kind-tab" data-submission-type="performance_task" type="button">Performance Tasks <span id="performanceSubmissionCount">0</span></button>
-</div>
-<div class="submission-toolbar">
-<div><span class="field-label">Section</span><div class="submission-section-tabs" id="submissionSectionTabs"></div></div>
-<label class="submission-sort-field">Sort submissions
-              <select id="submissionSort">
-<option selected="" value="newest">Newest submitted</option>
-<option value="oldest">Oldest submitted</option>
-<option value="name">Student name A–Z</option>
-<option value="gender">Gender (Male first), then name</option>
-</select>
-</label>
-</div>
-<div class="submission-section-summary" id="submissionSectionSummary"></div>
-<div class="assignment-list" id="submissionList"></div>
+<div class="section-row"><div><p class="eyebrow">STUDENT WORK</p><h2>Submissions</h2><p class="muted">Choose Written Works or Performance Tasks, then use Filter only when you need it.</p></div><button class="btn btn-light compact-filter-button" id="submissionFilterBtn" type="button" aria-expanded="false" aria-controls="submissionFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="submissionFilterBadge" class="filter-count-badge" hidden>0</span></button></div>
+<div aria-label="Submission category" class="submission-kind-tabs" id="submissionTypeTabs" role="tablist"><button class="submission-kind-tab active" data-submission-type="written_work" type="button">Written Works <span id="writtenSubmissionCount">0</span></button><button class="submission-kind-tab" data-submission-type="performance_task" type="button">Performance Tasks <span id="performanceSubmissionCount">0</span></button></div>
+<div class="compact-filter-wrap submission-filter-wrap"><div id="submissionFilterPanel" class="compact-filter-panel submission-filter-panel" hidden>
+<div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER SUBMISSIONS</p><h3>Choose what to show</h3></div><button type="button" class="icon-button compact-filter-close" id="submissionFilterClose" aria-label="Close filters">×</button></div>
+<div class="submission-toolbar"><div class="submission-section-control"><span class="field-label">Section</span><div id="submissionSectionTabs" class="submission-section-tabs"></div></div><div class="submission-filter-grid"><div class="submission-review-filter"><span class="field-label">Review status</span><div id="submissionReviewTabs" class="submission-review-tabs" role="group" aria-label="Filter submissions by review status"><button type="button" class="submission-review-tab active" data-submission-review-filter="all">All <span data-review-count="all">0</span></button><button type="button" class="submission-review-tab" data-submission-review-filter="new">New <span data-review-count="new">0</span></button><button type="button" class="submission-review-tab" data-submission-review-filter="checked">Checked <span data-review-count="checked">0</span></button></div></div><label class="submission-sort-field">View<select id="submissionGroupMode"><option value="section" selected>Separated by section</option><option value="combined">Combined list</option></select></label><label class="submission-sort-field">Order<select id="submissionSort"><option value="newest" selected>Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option></select></label></div></div>
+<div class="compact-filter-actions"><button type="button" class="btn btn-light" id="submissionClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="submissionFilterDone">Done</button></div>
+</div></div>
+<div class="submission-section-summary" id="submissionSectionSummary"></div><div class="assignment-list" id="submissionList"></div>
 </section>
 </main>
 </div>
@@ -690,6 +690,19 @@
 <div class="modal-actions"><button class="btn btn-orange" data-close="studentResponseModal" type="button">Close</button></div>
 </div>
 </dialog>
+
+<!-- PASSWORD RESET CONFIRMATION -->
+<dialog class="modal" id="passwordResetConfirmModal">
+<div class="modal-box archive-confirm-box">
+<button aria-label="Close" class="modal-close" data-close="passwordResetConfirmModal">×</button>
+<div aria-hidden="true" class="archive-confirm-icon">↻</div>
+<p class="eyebrow">RESET STUDENT PASSWORD</p>
+<h2>Generate a new temporary password?</h2>
+<p class="muted" id="passwordResetConfirmText"></p>
+<div class="archive-warning"><b>Important</b><span>The old password will stop working for future sign-ins. EduCore will securely generate a simpler temporary password and immediately download the new credentials in an Excel file.</span></div>
+<div class="modal-actions"><button class="btn btn-light" data-close="passwordResetConfirmModal" type="button">Cancel</button><button class="btn btn-orange" id="confirmPasswordResetBtn" type="button">Reset &amp; download Excel</button></div>
+</div>
+</dialog>
 <!-- PERSISTENT MESSAGE POPUP: closes only when the user clicks Close -->
 <dialog class="modal message-modal" id="messageDialog">
 <div class="modal-box message-box">
@@ -704,13 +717,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-<script src="js/app.js?v=15.7"></script>
+<script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+<script src="js/app.js?v=16.0"></script>
 <script src="js/student-v8.js?v=15.0"></script>
-<script src="js/classroom-features.js?v=15.1"></script>
+<script src="js/classroom-features.js?v=16.0"></script>
 <script src="js/design-v9.js?v=9"></script>
 <script src="js/pwa.js?v=6.9.16"></script>
 <script src="js/push-notifications.js?v=6.9.1"></script>
 <script src="js/archive-features.js?v=15.3"></script>
-<script src="js/work-types-v21.js?v=15.7"></script>
+<script src="js/work-types-v21.js?v=16.0"></script>
 </body>
 </html>
