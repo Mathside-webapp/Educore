@@ -294,7 +294,7 @@
   // ------------------------------------------------------------------
   function ensureNotificationDialog() {
     if (document.getElementById('v10NotificationDialog')) return;
-    document.body.insertAdjacentHTML('beforeend', `<dialog id="v10NotificationDialog" class="modal v10-notification-dialog"><div class="modal-box v10-notification-box"><button class="modal-close" type="button" id="v10NotificationClose" aria-label="Close">×</button><div class="v10-notification-title"><div><p class="eyebrow">EDUCORE UPDATES</p><h2>Notifications</h2></div><div class="v10-notification-actions"><button type="button" class="btn btn-light btn-small" id="v10PushNotificationBtn">Enable app alerts</button><button type="button" class="btn btn-light btn-small" id="v10MarkAllRead">Mark all read</button></div></div><div id="v10NotificationList" class="v10-notification-list"></div></div></dialog>`);
+    document.body.insertAdjacentHTML('beforeend', `<dialog id="v10NotificationDialog" class="modal v10-notification-dialog"><div class="modal-box v10-notification-box"><button class="modal-close" type="button" id="v10NotificationClose" aria-label="Close">×</button><div class="v10-notification-title"><div><p class="eyebrow">EDUCORE UPDATES</p><h2>Notifications</h2></div><div class="v10-notification-actions"><button type="button" class="btn btn-light btn-small" id="v10PushNotificationBtn">Enable app alerts</button><button type="button" class="btn btn-light btn-small" id="v10MarkAllRead">Mark all read</button><button type="button" class="btn btn-danger-outline btn-small" id="v10ClearNotifications">Clear all</button></div></div><div id="v10NotificationList" class="v10-notification-list"></div></div></dialog>`);
     document.getElementById('v10NotificationClose')?.addEventListener('click', () => document.getElementById('v10NotificationDialog')?.close());
     document.getElementById('v10MarkAllRead')?.addEventListener('click', async () => {
       if (!connected()) return;
@@ -304,15 +304,53 @@
       feature.notificationFetchedAt = Date.now();
       renderNotifications();
     });
+    document.getElementById('v10ClearNotifications')?.addEventListener('click', async () => {
+      if (!connected() || !feature.notifications.length) return;
+      const button = document.getElementById('v10ClearNotifications');
+      if (button) button.disabled = true;
+      try {
+        const { error } = await db.rpc('classside_delete_notifications', { p_ids: null });
+        if (error) throw error;
+        feature.notifications = [];
+        feature.notificationFetchedAt = Date.now();
+        renderNotifications();
+        toast('All notifications deleted.', 'success', 'Notifications cleared');
+      } catch (error) {
+        console.error('Delete notifications failed:', error);
+        toast(friendlyErrorMessage(error, 'Could not delete notifications.'), 'orange', 'Delete failed');
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
     document.getElementById('v10NotificationList')?.addEventListener('click', async event => {
+      const deleteBtn = event.target.closest('[data-notification-delete]');
+      if (deleteBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        const id = String(deleteBtn.dataset.notificationDelete || '');
+        const note = feature.notifications.find(n => n.id === id);
+        if (!note || !connected()) return;
+        deleteBtn.disabled = true;
+        try {
+          const { error } = await db.rpc('classside_delete_notifications', { p_ids: [id] });
+          if (error) throw error;
+          feature.notifications = feature.notifications.filter(n => n.id !== id);
+          feature.notificationFetchedAt = Date.now();
+          renderNotifications();
+          toast('Notification deleted.', 'success');
+        } catch (error) {
+          console.error('Delete notification failed:', error);
+          deleteBtn.disabled = false;
+          toast(friendlyErrorMessage(error, 'Could not delete this notification.'), 'orange', 'Delete failed');
+        }
+        return;
+      }
       const btn = event.target.closest('[data-notification-id]');
       if (!btn) return;
       const note = feature.notifications.find(n => n.id === btn.dataset.notificationId);
       if (!note) return;
       // Remove the unread highlight immediately so the tap feels responsive.
       note.read_at = new Date().toISOString();
-      btn.classList.remove('unread');
-      btn.querySelector(':scope > i')?.remove();
       renderNotifications();
       await db.rpc('classside_mark_notifications_read', { p_ids: [note.id] });
       feature.notificationFetchedAt = Date.now();
@@ -334,7 +372,7 @@
     setBadge('studentNotificationBadge', state.profile?.role === 'student' ? unread.length : 0);
     setBadge('studentFeedbackNavBadge', state.profile?.role === 'student' ? unread.filter(n => n.type === 'feedback').length : 0);
     if (!box) return;
-    box.innerHTML = feature.notifications.length ? feature.notifications.map(n => `<button type="button" class="v10-notification-row ${n.read_at ? '' : 'unread'}" data-notification-id="${esc(n.id)}"><span class="v10-notification-kind">${notificationIcon(n.type)}</span><span><b>${esc(n.title || 'EduCore update')}</b><small>${esc(n.body || '')}</small><time>${esc(formatDateTime(n.created_at))}</time></span>${n.read_at ? '' : '<i></i>'}</button>`).join('') : featureEmpty('You’re all caught up.', 'New class updates will appear here.');
+    box.innerHTML = feature.notifications.length ? feature.notifications.map(n => `<div class="v10-notification-row ${n.read_at ? '' : 'unread'}"><button type="button" class="v10-notification-open" data-notification-id="${esc(n.id)}"><span class="v10-notification-kind">${notificationIcon(n.type)}</span><span class="v10-notification-copy"><b>${esc(n.title || 'EduCore update')}</b><small>${esc(n.body || '')}</small><time>${esc(formatDateTime(n.created_at))}</time></span>${n.read_at ? '' : '<i></i>'}</button><button type="button" class="v10-notification-delete" data-notification-delete="${esc(n.id)}" aria-label="Delete ${esc(n.title || 'notification')}" title="Delete notification">×</button></div>`).join('') : featureEmpty('You’re all caught up.', 'New class updates will appear here.');
   }
 
   async function refreshNotifications({ force = false } = {}) {
@@ -557,6 +595,37 @@
     }
   }
 
+  let latestClassRecordExport = null;
+
+  function classRecordTimestamp(date = new Date()) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+  }
+
+  function downloadPreparedClassRecord(exportFile) {
+    if (!exportFile?.blob || !exportFile?.filename) {
+      return toast('The class record file is not ready. Export it again first.', 'orange', 'Download unavailable');
+    }
+    const url = URL.createObjectURL(exportFile.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = exportFile.filename;
+    link.rel = 'noopener';
+    if (typeof isIOSDevice === 'function' && isIOSDevice()) link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  function showClassRecordReady(section) {
+    const title = document.getElementById('classRecordExportTitle');
+    const lead = document.getElementById('classRecordExportLead');
+    if (title) title.textContent = `${section.name} class record is ready.`;
+    if (lead) lead.textContent = `Grade ${section.grade_level} • Tap Download Excel below. You can download the prepared file repeatedly or close this window and export a fresh copy later.`;
+    openDialog('classRecordExportModal');
+  }
+
   async function exportClassRecord() {
     if (!window.ExcelJS) return toast('Excel export library is not available.', 'orange', 'Export unavailable');
     const section = sectionById(activeRosterSectionId);
@@ -568,7 +637,9 @@
       return String(a.display_name || '').localeCompare(String(b.display_name || ''), undefined, { sensitivity: 'base' });
     });
     const assignments = state.assignments
-      .filter(a => a.section_id === section.id && a.status === 'published')
+      // Keep archived graded work in the class record so archiving never removes
+      // a learner's earned score from the exported record.
+      .filter(a => a.section_id === section.id && (a.status === 'published' || a.status === 'archived'))
       .sort((a,b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
 
     const workbook = new ExcelJS.Workbook();
@@ -670,15 +741,15 @@
         return Number.isFinite(numericScore) ? numericScore : rawScore;
       });
 
+      // Write the total as an actual number instead of an unevaluated Excel
+      // formula. Mobile spreadsheet previews often do not recalculate formulas,
+      // which made the Total Score column appear blank or 0 after download.
+      const totalEarned = scoreValues.reduce((sum, value) => {
+        const numeric = typeof value === 'number' ? value : Number.NaN;
+        return Number.isFinite(numeric) ? sum + numeric : sum;
+      }, 0);
       const row = sheet.getRow(rowNumber);
-      row.values = [student.display_name || '', classRecordGenderLabel(student.gender), ...scoreValues, ''];
-      if (assignments.length) {
-        const firstScoreColumn = sheet.getColumn(3).letter;
-        const finalScoreColumn = sheet.getColumn(lastAssignmentColumnNumber).letter;
-        row.getCell(totalScoreColumnNumber).value = { formula: `SUM(${firstScoreColumn}${rowNumber}:${finalScoreColumn}${rowNumber})` };
-      } else {
-        row.getCell(totalScoreColumnNumber).value = 0;
-      }
+      row.values = [student.display_name || '', classRecordGenderLabel(student.gender), ...scoreValues, totalEarned];
       row.getCell(totalScoreColumnNumber).font = { bold: true, color: { argb: 'FF7C2D00' } };
       row.getCell(totalScoreColumnNumber).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE8D5' } };
       row.height = 22;
@@ -755,17 +826,30 @@
     });
     assignmentSheet.views = [{ state: 'frozen', ySplit: 1 }];
 
+    const exportButton = document.getElementById('exportClassRecordBtn');
+    if (exportButton) exportButton.disabled = true;
+    latestClassRecordExport = null;
     try {
-      const buffer = await workbook.xlsx.writeBuffer();
-      downloadExcelBuffer(buffer, `EduCore-${safeFilename(section.name)}-Grade-${section.grade_level}-Class-Record.xlsx`);
-      toast('Class record exported to Excel.', 'success', 'Export complete');
+      let buffer = null;
+      await withLoading('Preparing class record…', 'Calculating student totals and creating the Excel workbook.', async () => {
+        buffer = await workbook.xlsx.writeBuffer();
+      });
+      latestClassRecordExport = {
+        blob: new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+        filename: `EduCore-${safeFilename(section.name)}-Grade-${section.grade_level}-Class-Record-${classRecordTimestamp()}.xlsx`
+      };
+      showClassRecordReady(section);
+      toast('Class record is ready to download.', 'success', 'Export ready');
     } catch (error) {
       console.error('Class record export failed:', error);
       toast('Could not create the Excel class record.', 'orange', 'Export failed');
+    } finally {
+      if (exportButton) exportButton.disabled = false;
     }
   }
   document.getElementById('downloadRosterAccountsBtn')?.addEventListener('click', exportRosterAccounts);
   document.getElementById('exportClassRecordBtn')?.addEventListener('click', exportClassRecord);
+  document.getElementById('downloadClassRecordExcelBtn')?.addEventListener('click', () => downloadPreparedClassRecord(latestClassRecordExport));
 
   // ------------------------------------------------------------------
   // PANEL HOOKS + CALENDAR CONTROLS

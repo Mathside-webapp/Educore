@@ -1,10 +1,11 @@
-/* EduCore V15.11 — Compact hidden filters for Written Works, Performance Tasks and Submissions.
+/* EduCore V15.12 — Compact hidden filters for Written Works, Performance Tasks and Submissions.
    Adapted from the established EduCore performance-task workflow while
    preserving EduCore archive, manual review and controlled resubmission. */
 (() => {
   'use strict';
 
   let submissionWorkType = 'written_work';
+  let submissionAssignmentFilter = 'all';
   let editingPerformanceTaskId = null;
   let editingPerformanceTaskIds = [];
   let activePerformanceTaskId = null;
@@ -16,6 +17,8 @@
   let activityStatusFilter = 'all';
   let activitySort = 'newest';
   const performanceLeaderSelections = new Map();
+  const performanceTeamOrders = new Map();
+  let performanceGroupingDirty = false;
 
   const originalOpenAssignmentPreview = openAssignmentPreview;
   const originalOpenSubmissionReview = openSubmissionReview;
@@ -177,7 +180,8 @@
     const count = selectedGroups.length;
     $('#selectedAssignmentCount') && ($('#selectedAssignmentCount').textContent = `${count} selected`);
     $('#bulkDeleteAssignmentsBtn') && ($('#bulkDeleteAssignmentsBtn').disabled = count === 0);
-    $('#bulkArchiveAssignmentsBtn') && ($('#bulkArchiveAssignmentsBtn').disabled = count === 0 || selectedGroups.every(group => group.every(a => a.status === 'archived')));
+    $('#bulkArchiveAssignmentsBtn') && ($('#bulkArchiveAssignmentsBtn').disabled = count === 0 || !selectedGroups.some(group => group.some(a => a.status !== 'archived')));
+    $('#bulkUnarchiveAssignmentsBtn') && ($('#bulkUnarchiveAssignmentsBtn').disabled = count === 0 || !selectedGroups.some(group => group.some(a => a.status === 'archived')));
     const selectAll = $('#selectAllAssignments');
     if (selectAll) {
       selectAll.checked = groups.length > 0 && count === groups.length;
@@ -214,10 +218,10 @@
         <label class="assignment-select-check"><input class="row-check" type="checkbox" data-select-assignment="${assignment.id}" data-assignment-group-ids="${esc(groupIdsAttr)}" ${selected ? 'checked' : ''}><span class="sr-only">Select ${esc(assignment.title)}</span></label>
         <div class="assignment-thumb">${assignment.image_url ? `<img src="${esc(assignment.image_url)}" alt="Activity image" data-assignment-storage-path="${esc(assignment.image_path || '')}">` : iconSvg('assignment','assignment-line-icon')}</div>
         <div class="assignment-card-body"><div class="assignment-title-line"><h3>${esc(assignment.title)}</h3>${group.length > 1 ? '<span class="shared-assignment-badge">Shared written work</span>' : ''}${scheduled ? '<span class="scheduled-badge">Scheduled</span>' : ''}${archived ? '<span class="archived-badge">Archived</span>' : ''}</div><p>${esc(assignment.instructions || 'Written work')}</p>${classList}<div class="assignment-meta">${classSummary}${scheduled ? `<span class="meta-chip scheduled-chip">Posts ${esc(formatDeadlineDate(assignment.publish_at))}</span>` : ''}${missingAnswers ? `<span class="meta-chip answer-key-warning">${missingAnswers} answer${missingAnswers===1?'':'s'} pending</span>` : ''}</div></div>
-        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? '' : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
+        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? `<button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(groupIdsAttr)}">Unarchive</button>` : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
       </article>`;
     }).join('');
-    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all written works</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
+    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all written works</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-unarchive" id="bulkUnarchiveAssignmentsBtn" type="button" disabled>Unarchive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
     updateAssignmentBulkToolbar();
   };
 
@@ -259,16 +263,69 @@
     if (!grouped && $('#performanceTeamPreview')) $('#performanceTeamPreview').innerHTML = '';
   }
 
-  function teamPreviewForSection(sectionId, mode, requestedGroupCount) {
-    const students = studentsForSection(sectionId).slice().sort((a,b) => {
+  function sortedStudentsForSection(sectionId) {
+    return studentsForSection(sectionId).slice().sort((a,b) => {
       const byName = String(a.display_name || '').localeCompare(String(b.display_name || ''), undefined, { sensitivity:'base' });
       return byName || String(a.id || '').localeCompare(String(b.id || ''));
     });
+  }
+
+  function orderedStudentsForPerformanceSection(sectionId) {
+    const students = sortedStudentsForSection(sectionId);
+    const savedOrder = performanceTeamOrders.get(sectionId);
+    if (!Array.isArray(savedOrder) || savedOrder.length !== students.length) return students;
+    const byId = new Map(students.map(student => [student.id, student]));
+    const ordered = savedOrder.map(id => byId.get(id)).filter(Boolean);
+    return ordered.length === students.length ? ordered : students;
+  }
+
+  function teamPreviewForSection(sectionId, mode, requestedGroupCount) {
+    const students = orderedStudentsForPerformanceSection(sectionId);
     if (!students.length) return [];
     const count = mode === 'pair' ? Math.ceil(students.length / 2) : Math.max(1, Math.min(students.length, Number(requestedGroupCount || 1)));
     const groups = Array.from({length: count}, (_, index) => ({ name: mode === 'pair' ? `Pair ${index + 1}` : `Group ${index + 1}`, members: [] }));
     students.forEach((student, index) => groups[index % count].members.push(student));
     return groups.filter(group => group.members.length);
+  }
+
+  function secureShuffle(values) {
+    const result = values.slice();
+    const random = new Uint32Array(1);
+    for (let i = result.length - 1; i > 0; i -= 1) {
+      if (globalThis.crypto?.getRandomValues) {
+        globalThis.crypto.getRandomValues(random);
+        const j = random[0] % (i + 1);
+        [result[i], result[j]] = [result[j], result[i]];
+      } else {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+    }
+    return result;
+  }
+
+  function reshufflePerformanceTeams() {
+    const mode = performanceMode();
+    if (mode === 'individual' || performanceGroupingCreator() !== 'teacher') return toast('Choose Pair or Group with teacher-created teams first.', 'orange');
+    if (mode === 'group' && !performanceGroupCount()) return toast('Enter how many groups you want first.', 'orange');
+    const sectionIds = selectedPerformanceSections();
+    if (!sectionIds.length) return toast('Select at least one class first.', 'orange');
+    sectionIds.forEach(sectionId => {
+      const ids = sortedStudentsForSection(sectionId).map(student => student.id);
+      performanceTeamOrders.set(sectionId, secureShuffle(ids));
+    });
+    performanceLeaderSelections.clear();
+    performanceGroupingDirty = true;
+    renderPerformanceTeamPreview();
+    toast(`Groups reshuffled for ${sectionIds.length} class${sectionIds.length === 1 ? '' : 'es'}.`, 'success');
+  }
+
+  function serializedPerformanceGroupsForSection(sectionId, mode = performanceMode(), requestedGroupCount = performanceGroupCount()) {
+    return teamPreviewForSection(sectionId, mode, requestedGroupCount).map(group => ({
+      name: group.name,
+      member_ids: group.members.map(member => member.id),
+      leader_id: selectedLeaderForGroup(sectionId, group)
+    }));
   }
 
   function performanceLeaderKey(sectionId, groupName) {
@@ -412,23 +469,22 @@
   async function applyStoredPerformanceGrouping(task) {
     if (!task || task.collaboration_mode === 'individual') return;
     if ((task.grouping_creator || 'teacher') !== 'teacher') return;
-    const { error } = await db.rpc('classside_generate_performance_groups', {
+    const groups = serializedPerformanceGroupsForSection(
+      task.section_id,
+      task.collaboration_mode,
+      task.group_count || performanceGroupCount()
+    );
+    const result = await db.rpc('classside_set_teacher_performance_groups', {
       p_assignment_id: task.id,
-      p_group_count: task.collaboration_mode === 'pair' ? null : Number(task.group_count || performanceGroupCount() || 1)
+      p_groups: groups
     });
-    if (error) throw error;
-    const leaders = leaderAssignmentsForSection(task.section_id, task.collaboration_mode, task.group_count || performanceGroupCount());
-    if (leaders.length) {
-      const leaderUpdate = await db.rpc('classside_set_performance_group_leaders', {
-        p_assignment_id: task.id,
-        p_leaders: leaders
-      });
-      if (leaderUpdate.error) throw leaderUpdate.error;
-    }
+    if (result.error) throw result.error;
   }
 
   function resetPerformanceForm() {
     performanceLeaderSelections.clear();
+    performanceTeamOrders.clear();
+    performanceGroupingDirty = false;
     const form = $('#performanceTaskForm');
     form?.reset();
     if (form?.elements?.max_points) form.elements.max_points.value = '100';
@@ -512,6 +568,7 @@
   $('#performanceGroupCount')?.addEventListener('input', renderPerformanceTeamPreview);
   $('#performanceSectionChecklist')?.addEventListener('change', renderPerformanceTeamPreview);
   $('#generatePerformanceTeamsBtn')?.addEventListener('click', renderPerformanceTeamPreview);
+  $('#reshufflePerformanceTeamsBtn')?.addEventListener('click', reshufflePerformanceTeams);
   $('#performanceImages')?.addEventListener('change', event => {
     const files = [...(event.currentTarget.files || [])].slice(0, 8);
     $('#performanceImagePreview').innerHTML = files.map((file,i)=>`<figure><img src="${URL.createObjectURL(file)}" alt="Selected task picture ${i+1}"><figcaption>${esc(file.name)}</figcaption></figure>`).join('');
@@ -561,7 +618,7 @@
       }).eq('id', task.id);
       if (update.error) throw update.error;
       const freshTask = { ...task, collaboration_mode:nextMode, grouping_creator:nextCreator, group_count:nextGroupCount };
-      if (setupChanged && freshTask.collaboration_mode !== 'individual' && freshTask.grouping_creator === 'teacher') await applyStoredPerformanceGrouping(freshTask);
+      if ((setupChanged || performanceGroupingDirty) && freshTask.collaboration_mode !== 'individual' && freshTask.grouping_creator === 'teacher') await applyStoredPerformanceGrouping(freshTask);
     } catch (error) {
       if (uploaded.length) await removeStoragePaths('classside-assignment-images', uploaded);
       throw error;
@@ -609,16 +666,21 @@
     try { schedule = readPerformanceSchedule(form); }
     catch (error) { return toast(friendlyErrorMessage(error, 'Could not check this performance task.'), 'orange', 'Check performance task'); }
 
+    const submitBtn = $('#performanceTaskSubmitBtn');
+    if (!window.EduCoreActionButton?.start(submitBtn, editingPerformanceTaskId ? 'Updating…' : 'Posting…')) return;
+
     if (editingPerformanceTaskId) {
       const copies = editingPerformanceTaskIds.map(id => assignmentById(id)).filter(Boolean);
       try {
         await withLoading(copies.length > 1 ? `Saving performance task in ${copies.length} classes…` : 'Saving performance task…', 'Updating instructions, deadline, pictures, rubric, and score settings.', async () => {
           for (const task of copies) await savePerformanceCopy(task, form, schedule, taskImages, rubricFile, $('#removePerformanceImages')?.checked, $('#removePerformanceRubric')?.checked);
-          closeDialog('performanceTaskModal'); editingPerformanceTaskId = null; editingPerformanceTaskIds = [];
+          editingPerformanceTaskId = null; editingPerformanceTaskIds = [];
           await refreshTeacher(); showTeacherView('performance');
         });
+        await window.EduCoreActionButton.done(submitBtn, 'Done');
+        closeDialog('performanceTaskModal');
         toast(schedule.status === 'draft' ? `Performance task scheduled for ${formatDeadlineDate(schedule.publishAt)}.` : 'Performance task updated.', 'success');
-      } catch (error) { console.error(error); toast(friendlyErrorMessage(error, 'Could not save the performance task.'), 'orange'); }
+      } catch (error) { window.EduCoreActionButton?.reset(submitBtn); console.error(error); toast(friendlyErrorMessage(error, 'Could not save the performance task.'), 'orange'); }
       return;
     }
 
@@ -642,10 +704,13 @@
           if (update.error) throw update.error;
           if (mode !== 'individual' && groupingCreator === 'teacher') await applyStoredPerformanceGrouping({ ...task, collaboration_mode:mode, grouping_creator:groupingCreator, group_count:groupCount });
         }
-        closeDialog('performanceTaskModal'); await refreshTeacher(); showTeacherView('performance');
+        await refreshTeacher(); showTeacherView('performance');
       });
+      await window.EduCoreActionButton.done(submitBtn, 'Done');
+      closeDialog('performanceTaskModal');
       toast(schedule.status === 'draft' ? `Performance task scheduled for ${formatDeadlineDate(schedule.publishAt)}.` : `Performance task posted to ${sectionIds.length} class${sectionIds.length===1?'':'es'}.`, 'success');
     } catch (error) {
+      window.EduCoreActionButton?.reset(submitBtn);
       console.error(error);
       if (uploaded.length) await removeStoragePaths('classside-assignment-images', uploaded);
       const ids = created.map(x=>x.id); if (ids.length) try { await db.from('classside_assignments').delete().in('id',ids); } catch {}
@@ -715,7 +780,7 @@
       return `<article class="assignment-card assignment-group-card performance-task-card performance-group-card ${scheduled?'assignment-scheduled':''} ${archived?'assignment-archived':''}">
         <div class="assignment-thumb performance-thumb">${a.image_url?`<img src="${esc(a.image_url)}" alt="Performance task picture" data-assignment-storage-path="${esc(a.image_path||'')}">`:'▣'}</div>
         <div class="assignment-card-body"><div class="assignment-title-line"><h3>${esc(a.title)}</h3>${group.length>1?'<span class="shared-assignment-badge">Shared performance task</span>':''}${scheduled?'<span class="scheduled-badge">Scheduled</span>':''}${archived?'<span class="archived-badge">Archived</span>':''}</div><p>${esc(a.instructions || 'Performance task')}</p>${classList}<div class="assignment-meta"><span class="meta-chip">${labels.length===1?esc(labels[0]):`${labels.length} classes`}</span><span class="meta-chip">${Number(a.max_points||0)} pts</span><span class="meta-chip">${esc(collaborationLabel(a))}</span>${a.due_at?`<span class="meta-chip">Due ${esc(formatDeadlineDate(a.due_at))}</span>`:''}${images.length?`<span class="meta-chip">${images.length} picture${images.length===1?'':'s'}</span>`:''}${a.rubric_path?'<span class="meta-chip rubric-chip">Rubric attached</span>':''}${scheduled?`<span class="meta-chip scheduled-chip">Posts ${esc(formatDeadlineDate(a.publish_at))}</span>`:''}</div></div>
-        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${a.id}">Preview</button>${archived?'':`<button class="btn btn-light" data-edit-performance-task="${a.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(ids.join(','))}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(ids.join(','))}">Delete</button></div>
+        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${a.id}">Preview</button>${archived?`<button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(ids.join(','))}">Unarchive</button>`:`<button class="btn btn-light" data-edit-performance-task="${a.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(ids.join(','))}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(ids.join(','))}">Delete</button></div>
       </article>`;
     }).join('');
   }
@@ -899,6 +964,37 @@
     tabs.innerHTML = `<button type="button" class="submission-section-tab ${submissionSectionId==='all'?'active':''}" data-submission-section="all"><b>All</b><span>${relevant.length}</span></button>` + state.sections.filter(s=>!s.archived_at).map(section => `<button type="button" class="submission-section-tab ${submissionSectionId===section.id?'active':''}" data-submission-section="${section.id}"><b>${esc(section.name)}</b><small>Grade ${esc(section.grade_level)}</small><span>${counts.get(section.id)||0}</span></button>`).join('');
   };
 
+  function renderSubmissionActivityFilter() {
+    const select = $('#submissionActivityFilter');
+    if (!select) return;
+    const label = $('#submissionActivityFilterLabel');
+    const isPerformance = submissionWorkType === 'performance_task';
+    if (label) label.textContent = isPerformance ? 'Performance task' : 'Activity';
+
+    const eligible = state.assignments
+      .filter(a => workType(a) === submissionWorkType)
+      .filter(a => submissionSectionId === 'all' || a.section_id === submissionSectionId)
+      .filter(a => !a.archived_at)
+      .sort((a,b) => {
+        const ad = new Date(a.due_at || a.publish_at || a.created_at || 0).getTime();
+        const bd = new Date(b.due_at || b.publish_at || b.created_at || 0).getTime();
+        if (bd !== ad) return bd - ad;
+        return String(a.title || '').localeCompare(String(b.title || ''), undefined, { sensitivity:'base' });
+      });
+
+    if (submissionAssignmentFilter !== 'all' && !eligible.some(a => a.id === submissionAssignmentFilter)) {
+      submissionAssignmentFilter = 'all';
+    }
+
+    const allLabel = isPerformance ? 'All performance tasks' : 'All activities';
+    select.innerHTML = `<option value="all">${allLabel}</option>` + eligible.map(a => {
+      const section = sectionById(a.section_id);
+      const suffix = submissionSectionId === 'all' && section ? ` · ${section.name}` : '';
+      return `<option value="${esc(a.id)}">${esc(a.title || (isPerformance ? 'Performance Task' : 'Activity'))}${esc(suffix)}</option>`;
+    }).join('');
+    select.value = submissionAssignmentFilter;
+  }
+
   function sortSubmissionRows(rows) {
     return [...rows].sort((a,b) => {
       const nameA = String(studentById(a.student_id)?.display_name || '');
@@ -934,11 +1030,16 @@
     submissionSort = ['newest','name','name-desc'].includes(submissionSort) ? submissionSort : 'newest';
     submissionReviewFilter = ['all','new','checked'].includes(submissionReviewFilter) ? submissionReviewFilter : 'all';
     submissionGroupMode = submissionGroupMode === 'combined' ? 'combined' : 'section';
-    renderTypeTabs(); renderSubmissionSectionTabs();
+    renderTypeTabs(); renderSubmissionSectionTabs(); renderSubmissionActivityFilter();
     if ($('#submissionSort')) $('#submissionSort').value = submissionSort;
     if ($('#submissionGroupMode')) $('#submissionGroupMode').value = submissionGroupMode;
 
-    const scopedRows = state.submissions.filter(s => workType(assignmentById(s.assignment_id)) === submissionWorkType && (submissionSectionId === 'all' || assignmentById(s.assignment_id)?.section_id === submissionSectionId));
+    const scopedRows = state.submissions.filter(s => {
+      const assignment = assignmentById(s.assignment_id);
+      return workType(assignment) === submissionWorkType
+        && (submissionSectionId === 'all' || assignment?.section_id === submissionSectionId)
+        && (submissionAssignmentFilter === 'all' || s.assignment_id === submissionAssignmentFilter);
+    });
     const statusCounts = {
       all: scopedRows.length,
       new: scopedRows.filter(s => s.status !== 'graded').length,
@@ -955,14 +1056,15 @@
     rows = sortSubmissionRows(rows);
     const uniqueStudents = new Set(rows.map(s=>s.student_id)).size;
     const selectedSection = submissionSectionId === 'all' ? null : sectionById(submissionSectionId);
+    const selectedAssignment = submissionAssignmentFilter === 'all' ? null : assignmentById(submissionAssignmentFilter);
     const typeLabel = submissionWorkType === 'performance_task' ? 'Performance Tasks' : 'Written Works';
-    const activeFilterCount = Number(submissionSectionId !== 'all') + Number(submissionReviewFilter !== 'all') + Number(submissionGroupMode !== 'section') + Number(submissionSort !== 'newest');
+    const activeFilterCount = Number(submissionSectionId !== 'all') + Number(submissionAssignmentFilter !== 'all') + Number(submissionReviewFilter !== 'all') + Number(submissionGroupMode !== 'section') + Number(submissionSort !== 'newest');
     const filterBadge = $('#submissionFilterBadge');
     if (filterBadge) { filterBadge.textContent = String(activeFilterCount); filterBadge.hidden = activeFilterCount === 0; }
-    $('#submissionSectionSummary').innerHTML = `<span><b>${rows.length}</b> shown</span><span><b>${uniqueStudents}</b> learner${uniqueStudents===1?'':'s'}</span><span><b>${typeLabel}</b></span>${selectedSection?`<span>${esc(selectedSection.name)} · Grade ${esc(selectedSection.grade_level)}</span>`:''}`;
+    $('#submissionSectionSummary').innerHTML = `<span><b>${rows.length}</b> shown</span><span><b>${uniqueStudents}</b> learner${uniqueStudents===1?'':'s'}</span><span><b>${typeLabel}</b></span>${selectedSection?`<span>${esc(selectedSection.name)} · Grade ${esc(selectedSection.grade_level)}</span>`:''}${selectedAssignment?`<span><b>${esc(selectedAssignment.title || 'Selected activity')}</b></span>`:''}`;
     if (!rows.length) {
       const emptyLabel = submissionReviewFilter === 'new' ? 'new submissions' : submissionReviewFilter === 'checked' ? 'checked submissions' : `${typeLabel.toLowerCase()} submissions`;
-      list.innerHTML = `<div class="assignment-empty v9-empty"><b>No ${emptyLabel}</b><p>Try another review-status or section filter.</p></div>`;
+      list.innerHTML = `<div class="assignment-empty v9-empty"><b>No ${emptyLabel}</b><p>Try another activity, review-status, or section filter.</p></div>`;
       return;
     }
 
@@ -997,8 +1099,12 @@
   });
   $('#submissionFilterClose')?.addEventListener('click', () => setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', false));
   $('#submissionFilterDone')?.addEventListener('click', () => setCompactFilterPanel('#submissionFilterBtn', '#submissionFilterPanel', false));
+  $('#submissionActivityFilter')?.addEventListener('change', event => {
+    submissionAssignmentFilter = event.currentTarget.value || 'all';
+    renderSubmissions();
+  });
   $('#submissionClearFilters')?.addEventListener('click', () => {
-    submissionSectionId = 'all'; submissionReviewFilter = 'all'; submissionGroupMode = 'section'; submissionSort = 'newest';
+    submissionSectionId = 'all'; submissionAssignmentFilter = 'all'; submissionReviewFilter = 'all'; submissionGroupMode = 'section'; submissionSort = 'newest';
     renderSubmissions();
   });
 
@@ -1274,22 +1380,24 @@
     if (!requireSupabase() || state.profile?.role !== 'student') return;
     const a = assignmentById(activePerformanceTaskId); if (!a) return;
     const existing = submissionFor(a.id);
-    let team = null;
-    if ((a.collaboration_mode || 'individual') !== 'individual') {
-      try { team = await getPerformanceTeamInfo(a.id); }
-      catch (error) { return toast(friendlyErrorMessage(error, 'Could not verify your team.'), 'orange'); }
-      if (!team?.is_leader) return toast('Only your team leader can submit this performance task.', 'orange');
-      try { await saveLeaderParticipationRatings(a, team); }
-      catch (error) { return toast(friendlyErrorMessage(error, 'Rate every team member before submitting.'), 'orange'); }
-    }
     if (a.status === 'archived') return toast('This performance task has been archived.', 'orange');
     if (existing && !existing.resubmit_allowed) return toast('Your teacher must allow another attempt before you can resubmit.', 'orange');
     const files = [...($('#performanceOutputImages')?.files || [])];
     if (!files.length) return toast('Upload at least one picture of your output.', 'orange');
     if (files.length > 10) return toast('Choose up to 10 output pictures.', 'orange');
     if (files.some(f => !String(f.type||'').startsWith('image/') && !isHeicImage(f))) return toast('Performance task outputs must be image files.', 'orange');
+
+    const submitBtn = event.currentTarget.querySelector('button[type="submit"]');
+    if (!window.EduCoreActionButton?.start(submitBtn, 'Submitting…')) return;
     const oldPaths = submissionOutputPaths(existing), newPaths = [];
     try {
+      let team = null;
+      if ((a.collaboration_mode || 'individual') !== 'individual') {
+        team = await getPerformanceTeamInfo(a.id);
+        if (!team?.is_leader) throw new Error('Only your team leader can submit this performance task.');
+        await saveLeaderParticipationRatings(a, team);
+      }
+
       await withLoading('Submitting performance task…','Uploading your output pictures and saving your submission.', async () => {
         for (let i=0; i<files.length; i+=1) {
           const f = await compressImageForUpload(files[i], { maxDimension: 1600, targetBytes: 450 * 1024, hardLimitBytes: 500 * 1024, quality: 0.80, minQuality: 0.50, minLongEdge: 900 });
@@ -1301,14 +1409,19 @@
         const { error } = await db.rpc('classside_submit_work', { p_assignment_id:a.id, p_answers:[], p_proof_paths:newPaths });
         if (error) throw error;
         if (oldPaths.length) await removeStoragePaths('classside-submission-proofs', oldPaths);
-        closeDialog('performanceSubmitModal'); await refreshStudent(); showStudentPanel('performance');
+        await refreshStudent();
+        showStudentPanel('performance');
       });
+      await window.EduCoreActionButton.done(submitBtn, 'Done');
+      closeDialog('performanceSubmitModal');
       toast('Performance task submitted.', 'success');
     } catch (error) {
+      window.EduCoreActionButton?.reset(submitBtn);
       console.error(error); if (newPaths.length) await removeStoragePaths('classside-submission-proofs', newPaths);
       toast(friendlyErrorMessage(error, 'Could not submit the performance task.'), 'orange');
     }
   });
+
 
   openStudentResponsePreview = async function(submissionId) {
     const submission = state.submissions.find(s=>s.id===submissionId), a = assignmentById(submission?.assignment_id);

@@ -1251,7 +1251,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .status-late{background:#ffe7e9!important;color:#b62c3c!important}
 .submission-toolbar{grid-template-columns:1fr;align-items:stretch}
 .submission-section-control{min-width:0}
-.submission-filter-grid{display:grid;grid-template-columns:minmax(260px,1.4fr) minmax(190px,.8fr) minmax(190px,.8fr);gap:10px;align-items:end}
+.submission-filter-grid{display:grid;grid-template-columns:minmax(250px,1.25fr) minmax(210px,1fr) minmax(160px,.75fr) minmax(180px,.8fr);gap:10px;align-items:end}
 .submission-review-filter{min-width:0}
 .submission-review-tabs{display:flex;gap:6px;margin-top:5px;padding:4px;background:#f7eee7;border:1px solid #ead7c8;border-radius:14px}
 .submission-review-tab{flex:1 1 0;border:0;background:transparent;border-radius:10px;min-height:40px;padding:8px 9px;font-weight:900;color:#6d5b4f;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer}
@@ -1287,7 +1287,7 @@ html,body{max-width:100%;overflow-x:hidden}
 #teacherApp .submission-filter-panel .submission-section-control{min-width:0}
 #teacherApp .submission-filter-panel .submission-section-tabs{display:flex;flex-wrap:wrap;gap:7px;overflow:visible;padding:3px 0}
 #teacherApp .submission-filter-panel .submission-section-tab{min-width:100px;flex:0 1 auto}
-#teacherApp .submission-filter-panel .submission-filter-grid{grid-template-columns:minmax(250px,1.2fr) minmax(160px,.8fr) minmax(160px,.8fr);gap:10px}
+#teacherApp .submission-filter-panel .submission-filter-grid{grid-template-columns:minmax(240px,1.2fr) minmax(210px,1fr) minmax(150px,.75fr) minmax(170px,.8fr);gap:10px}
 #teacherApp .submission-filter-panel .submission-sort-field{display:grid;gap:5px;min-width:0;margin:0!important}
 #teacherApp .submission-filter-panel .submission-sort-field select{max-width:none;width:100%;margin:0}
 .submission-section-summary{min-height:0}
@@ -1306,4 +1306,19 @@ html,body{max-width:100%;overflow-x:hidden}
   #teacherApp .submission-filter-panel .submission-section-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   #teacherApp .submission-filter-panel .submission-section-tab{min-width:0;width:100%}
   .compact-filter-actions .btn{flex:1}
+}
+
+
+/* Cross-platform action button states (iOS, Android, desktop). */
+.btn[data-educore-busy="1"] {
+  pointer-events: none;
+  cursor: wait;
+  opacity: 0.78;
+  transform: none !important;
+}
+
+.btn.action-done {
+  pointer-events: none;
+  opacity: 1;
+  transform: none !important;
 }

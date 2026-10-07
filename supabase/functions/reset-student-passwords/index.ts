@@ -9,8 +9,6 @@ function validUuid(value: string) {
 }
 
 function randomPassword() {
-  // Easy-to-type temporary student password: 8 lowercase letters with a
-  // consonant/vowel pattern (example: "navetomi"). No symbols or numbers.
   const consonants = 'bcdfghjkmnpqrstvwxyz'
   const vowels = 'aeiou'
   const bytes = new Uint8Array(8)
@@ -22,6 +20,7 @@ function randomPassword() {
   }
   return value
 }
+
 const resetStudentPasswords = withSupabase({ auth: 'user' }, async (req, ctx) => {
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed.' }, 405)
@@ -45,11 +44,29 @@ const resetStudentPasswords = withSupabase({ auth: 'user' }, async (req, ctx) =>
 
     const body = await req.json().catch(() => ({}))
     const sectionId = String(body?.section_id || '')
-    const studentIds = [...new Set(
+
+    // V3.2 accepts a teacher-chosen password for each selected learner.
+    // Keep the older student_ids format as a fallback so an older cached
+    // EduCore client can still reset passwords safely with random values.
+    const requestedPasswordMap = new Map<string, string>()
+    if (Array.isArray(body?.password_resets)) {
+      for (const item of body.password_resets.slice(0, 60)) {
+        const studentId = String(item?.student_id || '')
+        const password = String(item?.password || '').trim()
+        if (!validUuid(studentId)) continue
+        requestedPasswordMap.set(studentId, password)
+      }
+    }
+
+    const legacyStudentIds = [...new Set(
       (Array.isArray(body?.student_ids) ? body.student_ids : [])
         .map((value: unknown) => String(value || ''))
         .filter(validUuid)
     )].slice(0, 60)
+
+    const studentIds = requestedPasswordMap.size
+      ? [...requestedPasswordMap.keys()]
+      : legacyStudentIds
 
     if (!validUuid(sectionId) || !studentIds.length) {
       return json({ error: 'A valid class and at least one student are required.' }, 400)
@@ -103,9 +120,16 @@ const resetStudentPasswords = withSupabase({ auth: 'user' }, async (req, ctx) =>
           throw new Error('Only the teacher who created this student account can reset its password.')
         }
 
-        const temporaryPassword = randomPassword()
+        const chosenPassword = requestedPasswordMap.size
+          ? String(requestedPasswordMap.get(studentId) || '').trim()
+          : randomPassword()
+
+        if (chosenPassword.length < 6 || chosenPassword.length > 72) {
+          throw new Error('Password must contain 6 to 72 characters.')
+        }
+
         const { error: updateError } = await ctx.supabaseAdmin.auth.admin.updateUserById(studentId, {
-          password: temporaryPassword,
+          password: chosenPassword,
         })
         if (updateError) throw updateError
 
@@ -114,7 +138,7 @@ const resetStudentPasswords = withSupabase({ auth: 'user' }, async (req, ctx) =>
           name,
           gender: String(student.gender || 'Not specified'),
           username: String(student.username || ''),
-          temporary_password: temporaryPassword,
+          temporary_password: chosenPassword,
         })
       } catch (error) {
         failures.push({

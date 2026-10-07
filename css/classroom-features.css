@@ -21,7 +21,7 @@
 
 .v10-feature-empty{display:grid;place-items:center;text-align:center;gap:5px;min-height:120px;padding:24px;color:#776e73}.v10-feature-empty b{color:#2b2327;font-size:16px}.v10-feature-empty span{font-size:13px}
 
-.v10-notification-dialog .modal-box{max-width:620px}.v10-notification-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.v10-notification-title h2{margin:.2rem 0 0}.v10-notification-list{display:grid;gap:8px;max-height:60vh;overflow:auto}.v10-notification-row{width:100%;border:1px solid #eee4dd;border-radius:15px;background:#fff;display:grid;grid-template-columns:38px 1fr auto;gap:10px;text-align:left;padding:12px;cursor:pointer}.v10-notification-row:hover{background:#fff9f4}.v10-notification-row.unread{background:#fff5eb;border-color:#ffd7b8}.v10-notification-kind{width:38px;height:38px;border-radius:12px;background:#fff0e1;color:#f06a0b;display:grid;place-items:center;font-weight:900;font-size:17px}.v10-notification-row>span:nth-child(2){display:grid;gap:3px}.v10-notification-row b{font-size:14px}.v10-notification-row small{color:#6d6268;line-height:1.35}.v10-notification-row time{font-size:10px;color:#91858c}.v10-notification-row>i{width:8px;height:8px;border-radius:50%;background:#ff6b00;margin-top:8px}
+.v10-notification-dialog .modal-box{max-width:620px}.v10-notification-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.v10-notification-title h2{margin:.2rem 0 0}.v10-notification-actions{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap}.v10-notification-list{display:grid;gap:8px;max-height:60vh;overflow:auto}.v10-notification-row{width:100%;border:1px solid #eee4dd;border-radius:15px;background:#fff;display:grid;grid-template-columns:minmax(0,1fr) 36px;gap:4px;align-items:stretch;overflow:hidden}.v10-notification-row:hover{background:#fff9f4}.v10-notification-row.unread{background:#fff5eb;border-color:#ffd7b8}.v10-notification-open{appearance:none;border:0;background:transparent;width:100%;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;text-align:left;padding:12px;cursor:pointer;color:inherit}.v10-notification-kind{width:38px;height:38px;border-radius:12px;background:#fff0e1;color:#f06a0b;display:grid;place-items:center;font-weight:900;font-size:17px}.v10-notification-copy{display:grid;gap:3px;min-width:0}.v10-notification-row b{font-size:14px}.v10-notification-row small{color:#6d6268;line-height:1.35}.v10-notification-row time{font-size:10px;color:#91858c}.v10-notification-open>i{width:8px;height:8px;border-radius:50%;background:#ff6b00;margin-top:8px}.v10-notification-delete{appearance:none;border:0;border-left:1px solid rgba(185,127,87,.16);background:transparent;color:#9b6d58;font-size:19px;font-weight:800;cursor:pointer;display:grid;place-items:center;transition:.18s ease}.v10-notification-delete:hover{background:#fff0eb;color:#c13b2a}.v10-notification-delete:disabled{opacity:.45;cursor:wait}
 
 @media (max-width:900px){.v10-todo-summary{grid-template-columns:1fr}.v10-todo-card{grid-template-columns:auto 1fr}.v10-todo-meta{grid-column:2;justify-content:space-between}.v10-feedback-card{grid-template-columns:auto 1fr}.v10-feedback-score{grid-column:2;justify-items:start;grid-template-columns:auto auto auto;align-items:center;gap:10px}.v10-feedback-score .v8-view-button{margin-top:0}.v10-agenda-row{grid-template-columns:1fr auto}.v10-agenda-row time{grid-column:1}.v10-agenda-row div{grid-column:1}.v10-agenda-status{grid-column:2;grid-row:1}.v10-agenda-row button{grid-column:2;grid-row:2}.v10-roster-actions{width:100%;justify-content:flex-start}}
 @media (max-width:640px){.v10-calendar-weekdays span{font-size:9px}.v10-calendar-day{min-height:58px;padding:6px;border-radius:10px}.v10-calendar-day i{width:6px;height:6px}.v10-notification-button{width:40px;height:40px}.v10-todo-card{grid-template-columns:1fr}.v10-todo-check{display:none}.v10-todo-meta{grid-column:1}.v10-feedback-card{grid-template-columns:1fr}.v10-feedback-icon{display:none}.v10-feedback-score{grid-column:1}.v10-roster-actions .btn{flex:1}}
@@ -1286,3 +1286,25 @@ body.v8-student-active #reviewSubmissionModal{
     place-items:center!important;
   }
 }
+
+
+/* V24.0 — teacher-chosen password reset + reliable Excel result */
+.reset-passwords-box{max-width:760px!important}
+.reset-password-list{display:grid;gap:12px;max-height:min(52vh,520px);overflow:auto;padding:2px 4px 2px 0}
+.reset-password-row{display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,1.1fr);gap:16px;align-items:end;padding:14px;border:1px solid var(--line,#eadfd5);border-radius:16px;background:#fff}
+.reset-password-student{display:grid;gap:3px;min-width:0}
+.reset-password-student b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reset-password-student small{color:var(--muted,#6b7280);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reset-password-field{display:grid;gap:6px;font-size:.85rem;font-weight:700}
+.reset-password-field input{width:100%;min-height:44px;border:1px solid #d8cabc;border-radius:12px;padding:10px 12px;font:inherit;background:#fff}
+.reset-password-field input:focus{outline:3px solid rgba(255,107,0,.16);border-color:#ff6b00}
+.reset-password-show{display:flex!important;align-items:center;gap:9px;font-weight:700;cursor:pointer}
+.reset-password-show input{width:18px;height:18px}
+.reset-password-help{margin-top:-2px}
+.reset-passwords-complete-box{max-width:900px!important}
+.reset-passwords-complete-box .student-table-wrap{max-height:min(46vh,500px);overflow:auto}
+.reset-passwords-complete-box .credential-warning{margin:12px 0}
+@media(max-width:640px){.reset-password-row{grid-template-columns:1fr;gap:10px}.reset-password-list{max-height:48vh}.reset-passwords-complete-box .student-table-wrap{max-height:42vh}}
+
+/* V24.3: deletable notifications */
+@media (max-width:640px){.v10-notification-title{flex-direction:column}.v10-notification-actions{width:100%;justify-content:flex-start}.v10-notification-actions .btn{flex:1;min-width:110px}.v10-notification-open{padding:10px;grid-template-columns:34px minmax(0,1fr) auto}.v10-notification-kind{width:34px;height:34px}}

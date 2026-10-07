@@ -1,8 +1,8 @@
-/* EduCore PWA — V3.1.0
+/* EduCore PWA — V3.2.0
    GitHub Pages + localhost friendly.
    Provides app-shell caching, a graceful offline fallback, and controlled updates. */
 
-const CACHE_NAME = 'educore-pwa-v3.1.0';
+const CACHE_NAME = 'educore-pwa-v3.2.0';
 const CACHE_PREFIX = 'educore-pwa-';
 
 const APP_SHELL = [
@@ -22,24 +22,24 @@ const APP_SHELL = [
   './assets/educore-logos/educore-esp.png?v=305',
   './assets/educore-logos/educore-tle.png?v=305',
   './assets/educore-logos/educore-mapeh.png?v=305',
-  './css/styles.css?v=13.0',
+  './css/styles.css?v=13.2',
   './css/art-theme.css?v=7.0',
   './css/student-v8.css?v=10.5',
   './css/design-v9.css?v=9.1',
-  './css/classroom-features.css?v=11.3',
+  './css/classroom-features.css?v=11.5',
   './js/config.js',
-  './js/app.js?v=16.0',
+  './js/app.js?v=16.4',
   './js/student-v8.js?v=15.0',
-  './js/classroom-features.js?v=16.0',
+  './js/classroom-features.js?v=16.3',
   './js/design-v9.js?v=9',
   './js/pwa.js?v=6.9.16',
   './js/push-notifications.js?v=6.9.1',
-  './css/archive-features.css?v=12.2',
+  './css/archive-features.css?v=12.3',
   './css/layout-fixes.css?v=14.0',
-  './css/work-types-v21.css?v=15.10',
+  './css/work-types-v21.css?v=15.12',
   './css/subject-themes.css?v=3.0.5',
-  './js/archive-features.js?v=15.3',
-  './js/work-types-v21.js?v=16.0'
+  './js/archive-features.js?v=15.6',
+  './js/work-types-v21.js?v=16.4'
 ];
 
 self.addEventListener('install', (event) => {
@@ -86,9 +86,9 @@ self.addEventListener('fetch', (event) => {
         }
         return fresh;
       } catch (_) {
-        return (await caches.match(request))
-          || (await caches.match('./index.html'))
-          || (await caches.match('./offline.html'));
+        return (await caches.match('./offline.html'))
+          || (await caches.match(request))
+          || (await caches.match('./index.html'));
       }
     })());
     return;
@@ -133,8 +133,8 @@ self.addEventListener('push', (event) => {
 
     await self.registration.showNotification(title, {
       body: payload.body || 'You have a new EduCore update.',
-      icon: './icons/icon-192.png',
-      badge: './icons/icon-192.png',
+      icon: './icons/educore-icon-192.png',
+      badge: './icons/educore-icon-192.png',
       tag: payload.tag || `classside-${data.notificationId || Date.now()}`,
       renotify: false,
       data,

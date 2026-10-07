@@ -1173,3 +1173,11 @@
     max-width:44px!important;
   }
 }
+
+/* V24.2 — Performance Task group reshuffle controls */
+.performance-grouping-action-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.performance-grouping-action-row .btn { min-height:42px; }
+@media (max-width:640px) {
+  .performance-grouping-action-row { display:grid; grid-template-columns:1fr; }
+  .performance-grouping-action-row .btn { width:100%; }
+}

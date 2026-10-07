@@ -6,6 +6,7 @@
   const archiveState = {
     assignmentIds: [],
     classId: null,
+    deleteClassId: null,
     clearSubmissionId: null,
   };
 
@@ -57,9 +58,10 @@
       <footer><span><b>${studentCount}</b> student${studentCount === 1 ? '' : 's'}</span><span>${activeAssignmentCount} active${archivedAssignmentCount ? ` · ${archivedAssignmentCount} archived` : ''}</span></footer>
       <div class="class-card-actions">
         <button class="btn btn-light class-view-students-btn" type="button" data-view-class-students="${section.id}">${iconSvg('people', 'btn-icon')}View students</button>
-        ${dashboard ? '' : archived
+        ${dashboard ? '' : `${archived
           ? `<button class="btn btn-light" type="button" data-create-from-archive="${section.id}">Reuse students</button>`
           : `<button class="btn btn-danger-outline" type="button" data-archive-class="${section.id}">Archive class</button>`}
+          <button class="btn btn-danger" type="button" data-delete-class="${section.id}">Delete class</button>`}
       </div>
     </article>`;
   };
@@ -143,12 +145,15 @@
     event.preventDefault();
     event.stopImmediatePropagation();
     if (!requireSupabase()) return;
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const submitBtn = formElement.querySelector('button[type="submit"]');
+    const form = new FormData(formElement);
     const grade = Number(form.get('grade_level'));
     const name = String(form.get('name') || '').trim();
     const sourceSectionId = String(form.get('import_archived_section') || '').trim();
     const colors = { 7:'#ff6b00', 8:'#ff8f00', 9:'#ff4f81', 10:'#3e8ef7', 11:'#7b61c8', 12:'#2c9c78' };
     if (!name) return toast('Enter a class name.', 'orange');
+    if (!window.EduCoreActionButton?.start(submitBtn, 'Creating…')) return;
     try {
       let created;
       await withLoading('Creating class…', sourceSectionId ? 'Creating the class and enrolling existing student accounts.' : `Setting up ${name} for Grade ${grade}.`, async () => {
@@ -169,18 +174,21 @@
           data.imported_count = Number(imported || 0);
         }
         activeSectionId = data.id;
-        closeDialog('sectionModal');
         await refreshTeacher();
         showTeacherView('classes');
       });
+      await window.EduCoreActionButton.done(submitBtn, 'Done');
+      closeDialog('sectionModal');
       toast(sourceSectionId ? `Class created. ${Number(created?.imported_count || 0)} existing student account${Number(created?.imported_count || 0) === 1 ? '' : 's'} enrolled.` : 'Class created.', 'success');
     } catch (error) {
+      window.EduCoreActionButton?.reset(submitBtn);
       console.error(error);
       toast(friendlyErrorMessage(error, 'Could not create the class.'), 'orange');
     }
   }, true);
 
-  // ---------------------------------------------------------------
+  
+// ---------------------------------------------------------------
   // ASSIGNMENT RENDERING + ARCHIVE ACTIONS
   // ---------------------------------------------------------------
   updateAssignmentBulkToolbar = function() {
@@ -191,7 +199,8 @@
     const count = selectedGroups.length;
     $('#selectedAssignmentCount') && ($('#selectedAssignmentCount').textContent = `${count} selected`);
     $('#bulkDeleteAssignmentsBtn') && ($('#bulkDeleteAssignmentsBtn').disabled = count === 0);
-    $('#bulkArchiveAssignmentsBtn') && ($('#bulkArchiveAssignmentsBtn').disabled = count === 0 || selectedGroups.every(group => group.every(a => a.status === 'archived')));
+    $('#bulkArchiveAssignmentsBtn') && ($('#bulkArchiveAssignmentsBtn').disabled = count === 0 || !selectedGroups.some(group => group.some(a => a.status !== 'archived')));
+    $('#bulkUnarchiveAssignmentsBtn') && ($('#bulkUnarchiveAssignmentsBtn').disabled = count === 0 || !selectedGroups.some(group => group.some(a => a.status === 'archived')));
     const selectAll = $('#selectAllAssignments');
     if (selectAll) {
       selectAll.checked = count > 0 && count === groups.length;
@@ -224,10 +233,10 @@
         <label class="assignment-select-check"><input class="row-check" type="checkbox" data-select-assignment="${assignment.id}" data-assignment-group-ids="${esc(groupIdsAttr)}" ${selected ? 'checked' : ''}><span class="sr-only">Select ${esc(assignment.title)}</span></label>
         <div class="assignment-thumb">${assignment.image_url ? `<img src="${esc(assignment.image_url)}" alt="Assignment image" data-assignment-storage-path="${esc(assignment.image_path || '')}">` : iconSvg('assignment', 'assignment-line-icon')}</div>
         <div class="assignment-card-body"><div class="assignment-title-line"><h3>${esc(assignment.title)}</h3>${group.length > 1 ? '<span class="shared-assignment-badge">Shared assignment</span>' : ''}${scheduled ? '<span class="scheduled-badge">Scheduled</span>' : ''}${archived ? '<span class="archived-badge">Archived</span>' : ''}</div><p>${esc(assignment.instructions || 'Classwork assignment')}</p>${classList}<div class="assignment-meta">${classSummary}${scheduled ? `<span class="meta-chip scheduled-chip">Posts ${esc(formatDeadlineDate(assignment.publish_at))}</span>` : ''}${missingAnswers ? `<span class="meta-chip answer-key-warning">${missingAnswers} answer${missingAnswers===1?'':'s'} pending</span>` : ''}</div></div>
-        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? '' : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
+        <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? `<button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(groupIdsAttr)}">Unarchive</button>` : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
       </article>`;
     }).join('');
-    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all activities</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
+    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all activities</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-unarchive" id="bulkUnarchiveAssignmentsBtn" type="button" disabled>Unarchive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
     updateAssignmentBulkToolbar();
   };
 
@@ -394,7 +403,59 @@
     openDialog('archiveAssignmentModal');
   }
 
+  async function unarchiveAssignments(ids) {
+    const valid = [...new Set((ids || []).filter(id => assignmentById(id)?.status === 'archived'))];
+    if (!valid.length) return toast('The selected activity is already active.', 'orange');
+    const assignments = valid.map(id => assignmentById(id)).filter(Boolean);
+    const allPerformance = assignments.length > 0 && assignments.every(isPerformanceTask);
+    const targetView = allPerformance ? 'performance' : 'assignments';
+    try {
+      await withLoading(
+        allPerformance ? 'Unarchiving performance task…' : 'Unarchiving activity…',
+        'Restoring the task for students and keeping its existing submissions and scores.',
+        async () => {
+          const now = Date.now();
+          const scheduledIds = assignments
+            .filter(a => a.publish_at && new Date(a.publish_at).getTime() > now)
+            .map(a => a.id);
+          const publishedIds = assignments
+            .filter(a => !scheduledIds.includes(a.id))
+            .map(a => a.id);
+          if (scheduledIds.length) {
+            const { error } = await db.from('classside_assignments')
+              .update({ status: 'draft', archived_at: null })
+              .in('id', scheduledIds);
+            if (error) throw error;
+          }
+          if (publishedIds.length) {
+            const { error } = await db.from('classside_assignments')
+              .update({ status: 'published', archived_at: null })
+              .in('id', publishedIds);
+            if (error) throw error;
+          }
+          valid.forEach(id => selectedAssignmentIds.delete(id));
+          await refreshTeacher();
+          showTeacherView(targetView);
+        }
+      );
+      toast(
+        allPerformance ? 'Performance task restored.' : 'Activity restored.',
+        'success',
+        'Unarchived'
+      );
+    } catch (error) {
+      console.error(error);
+      toast(friendlyErrorMessage(error, 'Could not unarchive the selected activity.'), 'orange', 'Unarchive failed');
+    }
+  }
+
   document.addEventListener('click', event => {
+    const unarchive = event.target.closest('[data-unarchive-assignment-group]');
+    if (unarchive) return unarchiveAssignments(String(unarchive.dataset.unarchiveAssignmentGroup || '').split(',').filter(Boolean));
+    if (event.target.closest('#bulkUnarchiveAssignmentsBtn')) {
+      const ids = [...selectedAssignmentIds].filter(id => assignmentById(id)?.status === 'archived');
+      return unarchiveAssignments(ids);
+    }
     const button = event.target.closest('[data-archive-assignment-group]');
     if (button) return openArchiveAssignments(String(button.dataset.archiveAssignmentGroup || '').split(',').filter(Boolean));
     if (event.target.closest('#bulkArchiveAssignmentsBtn')) {
@@ -496,6 +557,64 @@
     } catch (error) {
       console.error(error);
       toast(friendlyErrorMessage(error, 'Could not archive this class.'), 'orange', 'Archive failed');
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // PERMANENT CLASS DELETION
+  // ---------------------------------------------------------------
+  document.addEventListener('click', event => {
+    const button = event.target.closest('[data-delete-class]');
+    if (!button) return;
+    const section = sectionById(button.dataset.deleteClass);
+    if (!section) return;
+    archiveState.deleteClassId = section.id;
+    const assignments = state.assignments.filter(a => a.section_id === section.id);
+    const studentCount = studentsForSection(section.id).length;
+    $('#deleteClassTitle').textContent = `Delete ${section.name}?`;
+    $('#deleteClassText').textContent = `${sectionLabel(section)} has ${studentCount} student${studentCount === 1 ? '' : 's'} and ${assignments.length} activity/performance-task record${assignments.length === 1 ? '' : 's'}.`;
+    openDialog('deleteClassModal');
+  });
+
+  $('#confirmDeleteClassBtn')?.addEventListener('click', async () => {
+    const button = $('#confirmDeleteClassBtn');
+    const section = sectionById(archiveState.deleteClassId);
+    if (!section) return closeDialog('deleteClassModal');
+    if (!window.EduCoreActionButton?.start(button, 'Deleting…')) return;
+
+    try {
+      const assignmentIds = state.assignments.filter(a => a.section_id === section.id).map(a => a.id);
+      if (assignmentIds.length) {
+        const { data: sessionData, error: sessionError } = await db.auth.getSession();
+        if (sessionError) throw sessionError;
+        const accessToken = sessionData?.session?.access_token;
+        if (!accessToken) throw new Error('Your teacher session has expired. Please sign in again.');
+
+        for (const assignmentId of assignmentIds) {
+          await deleteAssignmentThroughFunction(assignmentId, accessToken);
+        }
+      }
+
+      const { data: deletedSection, error: deleteError } = await db
+        .from('classside_sections')
+        .delete()
+        .eq('id', section.id)
+        .select('id')
+        .maybeSingle();
+      if (deleteError) throw deleteError;
+      if (!deletedSection?.id) throw new Error('Class could not be deleted or you no longer have permission to delete it.');
+
+      if (activeSectionId === section.id) activeSectionId = null;
+      archiveState.deleteClassId = null;
+      await refreshTeacher();
+      showTeacherView('classes');
+      await window.EduCoreActionButton.done(button, 'Deleted');
+      closeDialog('deleteClassModal');
+      toast('Class deleted permanently. Student login accounts were kept.', 'success', 'Class deleted');
+    } catch (error) {
+      console.error(error);
+      window.EduCoreActionButton?.reset(button);
+      toast(friendlyErrorMessage(error, 'Could not delete this class.'), 'orange', 'Delete failed');
     }
   });
 

@@ -93,7 +93,6 @@ let lastGeneratedAccounts = [];
 let lastGeneratedSection = null;
 let pendingStudentAction = null;
 let pendingAssignmentDeleteId = null;
-let pendingPasswordResetRequest = null;
 let pendingAssignmentDeleteIds = [];
 let editingAssignmentId = null;
 let editingAssignmentIds = [];
@@ -389,6 +388,52 @@ async function withLoading(title, message, fn) {
   }
 }
 
+// Cross-platform anti-double-click button states. Uses standard DOM APIs
+// so the same flow works on iOS Safari, Android Chrome, and desktop browsers.
+function startActionButton(button, busyText = 'Working…') {
+  if (!button || button.dataset.educoreBusy === '1') return false;
+  button.dataset.educoreBusy = '1';
+  button.dataset.educoreOriginalText = button.textContent || '';
+  button.dataset.educoreOriginalDisabled = button.disabled ? '1' : '0';
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
+  button.textContent = busyText;
+  return true;
+}
+
+function resetActionButton(button) {
+  if (!button) return;
+  const originalText = button.dataset.educoreOriginalText;
+  const wasDisabled = button.dataset.educoreOriginalDisabled === '1';
+  if (originalText !== undefined) button.textContent = originalText;
+  button.disabled = wasDisabled;
+  button.removeAttribute('aria-busy');
+  button.removeAttribute('data-educore-busy');
+  delete button.dataset.educoreOriginalText;
+  delete button.dataset.educoreOriginalDisabled;
+  button.classList.remove('action-done');
+}
+
+async function finishActionButton(button, doneText = 'Done', holdMs = 420) {
+  if (!button) return;
+  button.textContent = doneText;
+  button.classList.add('action-done');
+  button.setAttribute('aria-busy', 'false');
+  if (holdMs > 0) await sleep(holdMs);
+  resetActionButton(button);
+}
+
+function actionButtonBusy(button) {
+  return Boolean(button?.dataset?.educoreBusy === '1');
+}
+
+window.EduCoreActionButton = {
+  start: startActionButton,
+  done: finishActionButton,
+  reset: resetActionButton,
+  busy: actionButtonBusy
+};
+
 function openDialog(id) {
   const dialog = document.getElementById(id);
   if (dialog && !dialog.open) dialog.showModal();
@@ -436,7 +481,6 @@ function resetState() {
   lastGeneratedAccounts = [];
   lastGeneratedSection = null;
   pendingStudentAction = null;
-  pendingPasswordResetRequest = null;
   signedUrlCache.clear();
   submissionAnswerCache.clear();
 }
@@ -1189,175 +1233,126 @@ $('#bulkDeleteStudentsBtn')?.addEventListener('click', () => {
 });
 
 
-async function downloadResetPasswordsExcel(accounts, section) {
-  if (!window.ExcelJS) throw new Error('Excel export library is not available.');
+async function buildResetPasswordsExcel(accounts, section) {
+  if (!window.ExcelJS) throw new Error('Excel export library is not available. Check your connection and try again.');
   const createdAt = new Date();
   const genderRank = value => String(value || '').trim().toLowerCase() === 'male' ? 0 : String(value || '').trim().toLowerCase() === 'female' ? 1 : 2;
   const rows = (accounts || []).slice().sort((a, b) => {
     const g = genderRank(a.gender) - genderRank(b.gender);
     return g || String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
   });
-
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'EduCore';
   workbook.created = createdAt;
   const sheet = workbook.addWorksheet('Reset Credentials', { views: [{ state: 'frozen', ySplit: 4 }] });
-  const thinBorder = {
-    top: { style: 'thin', color: { argb: 'FFC9B7A8' } },
-    left: { style: 'thin', color: { argb: 'FFC9B7A8' } },
-    bottom: { style: 'thin', color: { argb: 'FFC9B7A8' } },
-    right: { style: 'thin', color: { argb: 'FFC9B7A8' } }
-  };
-
+  const thinBorder = { top:{style:'thin',color:{argb:'FFC9B7A8'}}, left:{style:'thin',color:{argb:'FFC9B7A8'}}, bottom:{style:'thin',color:{argb:'FFC9B7A8'}}, right:{style:'thin',color:{argb:'FFC9B7A8'}} };
   sheet.mergeCells('A1:E1');
   const title = sheet.getCell('A1');
   title.value = 'EDUCORE — RESET STUDENT PASSWORDS';
-  title.font = { bold: true, size: 16, color: { argb: 'FFFFFFFF' } };
-  title.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF6B00' } };
-  title.alignment = { vertical: 'middle', horizontal: 'left' };
+  title.font = { bold:true, size:16, color:{argb:'FFFFFFFF'} };
+  title.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFF6B00'} };
+  title.alignment = { vertical:'middle', horizontal:'left' };
   title.border = thinBorder;
   sheet.getRow(1).height = 28;
-
   sheet.mergeCells('A2:E2');
   const info = sheet.getCell('A2');
   info.value = `${section?.name || 'Class'}   •   ${section?.grade_level ? `Grade ${section.grade_level}` : 'Grade'}   •   Reset: ${createdAt.toLocaleString()}`;
-  info.font = { bold: true, color: { argb: 'FF7C2D00' } };
-  info.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE8D5' } };
-  info.alignment = { vertical: 'middle', horizontal: 'left' };
+  info.font = { bold:true, color:{argb:'FF7C2D00'} };
+  info.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFFFE8D5'} };
+  info.alignment = { vertical:'middle', horizontal:'left' };
   info.border = thinBorder;
-
   const header = sheet.getRow(4);
-  header.values = ['No.', 'Student Name', 'Gender', 'Username', 'New Temporary Password'];
+  header.values = ['No.','Student Name','Gender','Username','New Password'];
   header.height = 25;
-  header.eachCell(cell => {
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D3748' } };
-    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-    cell.border = thinBorder;
-  });
-
-  let rowNumber = 5;
-  let number = 1;
-  let currentGroup = null;
+  header.eachCell(cell => { cell.font={bold:true,color:{argb:'FFFFFFFF'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF2D3748'}}; cell.alignment={vertical:'middle',horizontal:'center',wrapText:true}; cell.border=thinBorder; });
+  let rowNumber=5, number=1, currentGroup=null;
   for (const student of rows) {
-    const rank = genderRank(student.gender);
-    const group = rank === 0 ? 'MALE' : rank === 1 ? 'FEMALE' : 'OTHER / NOT SPECIFIED';
-    if (group !== currentGroup) {
-      currentGroup = group;
+    const rank=genderRank(student.gender);
+    const group=rank===0?'MALE':rank===1?'FEMALE':'OTHER / NOT SPECIFIED';
+    if (group!==currentGroup) {
+      currentGroup=group;
       sheet.mergeCells(`A${rowNumber}:E${rowNumber}`);
-      const groupCell = sheet.getCell(`A${rowNumber}`);
-      groupCell.value = group;
-      groupCell.font = { bold: true, color: { argb: rank === 0 ? 'FF174A7E' : rank === 1 ? 'FF8C2458' : 'FF5B5B5B' } };
-      groupCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rank === 0 ? 'FFDCEEFF' : rank === 1 ? 'FFFCE1EE' : 'FFECECEC' } };
-      groupCell.alignment = { vertical: 'middle', horizontal: 'left' };
-      for (let col = 1; col <= 5; col += 1) sheet.getCell(rowNumber, col).border = thinBorder;
-      rowNumber += 1;
+      const groupCell=sheet.getCell(`A${rowNumber}`);
+      groupCell.value=group;
+      groupCell.font={bold:true,color:{argb:rank===0?'FF174A7E':rank===1?'FF8C2458':'FF5B5B5B'}};
+      groupCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:rank===0?'FFDCEEFF':rank===1?'FFFCE1EE':'FFECECEC'}};
+      groupCell.alignment={vertical:'middle',horizontal:'left'};
+      for (let col=1;col<=5;col+=1) sheet.getCell(rowNumber,col).border=thinBorder;
+      rowNumber+=1;
     }
-    const row = sheet.getRow(rowNumber++);
-    row.values = [number++, student.name || '', student.gender || 'Not specified', student.username || '', student.temporary_password || ''];
-    row.height = 21;
-    row.eachCell((cell, col) => {
-      cell.border = thinBorder;
-      cell.alignment = { vertical: 'middle', horizontal: col === 1 ? 'center' : 'left', wrapText: true };
-    });
-    row.getCell(4).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF6EA' } };
-    row.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEFD9' } };
-    row.getCell(5).font = { bold: true, color: { argb: 'FF7C2D00' } };
+    const row=sheet.getRow(rowNumber++);
+    row.values=[number++,student.name||'',student.gender||'Not specified',student.username||'',student.temporary_password||''];
+    row.height=21;
+    row.eachCell((cell,col)=>{cell.border=thinBorder;cell.alignment={vertical:'middle',horizontal:col===1?'center':'left',wrapText:true};});
+    row.getCell(4).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF6EA'}};
+    row.getCell(5).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFEFD9'}};
+    row.getCell(5).font={bold:true,color:{argb:'FF7C2D00'}};
   }
-
-  sheet.getColumn(1).width = 7;
-  sheet.getColumn(2).width = 34;
-  sheet.getColumn(3).width = 14;
-  sheet.getColumn(4).width = 32;
-  sheet.getColumn(5).width = 26;
-
-  const notes = workbook.addWorksheet('Read Me');
-  notes.columns = [{ width: 24 }, { width: 90 }];
-  const noteRows = [
-    ['EDUCORE — IMPORTANT', ''],
-    ['What changed', 'The listed student passwords were reset. Their previous passwords no longer work for future sign-ins.'],
-    ['Privacy', 'Keep this file private. Give each learner only their own username and new temporary password.'],
-    ['Recovery', 'EduCore does not store readable passwords. If this file is lost, reset the affected password again.'],
-    ['Class', section?.name || ''],
-    ['Grade', section?.grade_level ? `Grade ${section.grade_level}` : '']
-  ];
-  noteRows.forEach((values, index) => {
-    const row = notes.addRow(values);
-    row.eachCell(cell => { cell.border = thinBorder; cell.alignment = { vertical: 'top', wrapText: true }; });
-    if (index === 0) {
-      row.eachCell(cell => {
-        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF6B00' } };
-      });
-    } else {
-      row.getCell(1).font = { bold: true, color: { argb: 'FF7C2D00' } };
-      row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFE8D5' } };
-    }
-  });
-
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `EduCore-Reset-Passwords-${safeFileName(section?.name || 'Class')}-${excelTimestamp(createdAt)}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  sheet.getColumn(1).width=7; sheet.getColumn(2).width=34; sheet.getColumn(3).width=14; sheet.getColumn(4).width=32; sheet.getColumn(5).width=26;
+  const notes=workbook.addWorksheet('Read Me');
+  notes.columns=[{width:24},{width:90}];
+  const noteRows=[['EDUCORE — IMPORTANT',''],['What changed','The listed student passwords were changed to the new passwords chosen by the teacher. Their previous passwords no longer work for future sign-ins.'],['Privacy','Keep this file private. Give each learner only their own username and new password.'],['Recovery','EduCore does not store readable passwords. If this file is lost, reset the affected password again.'],['Class',section?.name||''],['Grade',section?.grade_level?`Grade ${section.grade_level}`:'']];
+  noteRows.forEach((values,index)=>{const row=notes.addRow(values);row.eachCell(cell=>{cell.border=thinBorder;cell.alignment={vertical:'top',wrapText:true};});if(index===0){row.eachCell(cell=>{cell.font={bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFF6B00'}};});}else{row.getCell(1).font={bold:true,color:{argb:'FF7C2D00'}};row.getCell(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE8D5'}};}});
+  const buffer=await workbook.xlsx.writeBuffer();
+  const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  return { blob, filename:`EduCore-Reset-Passwords-${safeFileName(section?.name||'Class')}-${excelTimestamp(createdAt)}.xlsx` };
 }
-
-async function runPendingPasswordReset() {
-  const request = pendingPasswordResetRequest;
-  if (!request) return;
-  pendingPasswordResetRequest = null;
-  const section = sectionById(request.sectionId);
-  const ids = request.studentIds || [];
-  const selected = ids.map(studentById).filter(Boolean);
-  if (!section || !ids.length) return toast('The selected class or students are no longer available.', 'orange');
-  try {
-    let result = null;
-    await withLoading('Resetting passwords…', `Generating new temporary password${selected.length === 1 ? '' : 's'} securely.`, async () => {
-      result = await invokeTeacherFunction('reset-student-passwords', {
-        section_id: section.id,
-        student_ids: ids
-      });
+function isIOSDevice(){return /iPad|iPhone|iPod/i.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function downloadPreparedResetExcel(exportFile){
+  if(!exportFile?.blob||!exportFile?.filename)return toast('The reset Excel file is not ready. Please reset the password again.','orange','Download unavailable');
+  const url=URL.createObjectURL(exportFile.blob);
+  const link=document.createElement('a');
+  link.href=url; link.download=exportFile.filename; link.rel='noopener';
+  if(isIOSDevice()) link.target='_blank';
+  document.body.appendChild(link); link.click(); link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+let resetPasswordStudentIds=[];
+let latestResetPasswordExport=null;
+function openResetPasswordsModal(section,ids){
+  const selected=(ids||[]).map(studentById).filter(Boolean); if(!section||!selected.length)return;
+  resetPasswordStudentIds=selected.map(student=>student.id);
+  $('#resetPasswordsLead').textContent=selected.length===1?`Choose a new password for ${selected[0].display_name||'this learner'}. The old password will stop working for future sign-ins.`:`Choose a separate new password for each of the ${selected.length} selected learners. Their old passwords will stop working for future sign-ins.`;
+  $('#resetPasswordRows').innerHTML=selected.map(student=>`<label class="reset-password-row"><span class="reset-password-student"><b>${esc(student.display_name||'Student')}</b><small>${esc(student.username||'No username')}</small></span><span class="reset-password-field"><span>New password</span><input type="password" data-reset-password-id="${esc(student.id)}" minlength="6" maxlength="72" autocomplete="new-password" autocapitalize="none" spellcheck="false" required placeholder="Enter new password"></span></label>`).join('');
+  const show=$('#showResetPasswords'); if(show)show.checked=false;
+  openDialog('resetPasswordsModal'); requestAnimationFrame(()=>$('#resetPasswordRows input')?.focus());
+}
+function renderResetPasswordsComplete(reset,section,exportError=null){
+  $('#resetPasswordsCompleteTitle').textContent=`${reset.length} student password${reset.length===1?'':'s'} changed.`;
+  $('#resetPasswordsCompleteLead').textContent=`${section?.name||'Class'}${section?.grade_level?` · Grade ${section.grade_level}`:''} — Download the Excel file and give each learner only their own credentials.`;
+  $('#resetPasswordsCompleteBody').innerHTML=reset.map(student=>`<tr><td>${esc(student.name||'Student')}</td><td>${esc(student.gender||'Not specified')}</td><td>${esc(student.username||'')}</td><td><b>${esc(student.temporary_password||'')}</b></td></tr>`).join('');
+  const status=$('#resetPasswordsExportStatus'),button=$('#downloadResetPasswordsExcelBtn');
+  if(exportError||!latestResetPasswordExport){status.textContent='Passwords were changed successfully, but EduCore could not prepare the Excel file. Keep this window open and copy the credentials shown below.';if(button)button.disabled=true;}
+  else{status.textContent='Your Excel file is ready. Tap Download Excel to save a copy.';if(button)button.disabled=false;}
+  openDialog('resetPasswordsCompleteModal');
+}
+$('#showResetPasswords')?.addEventListener('change',event=>{const type=event.currentTarget.checked?'text':'password';$$('#resetPasswordRows input[data-reset-password-id]').forEach(input=>{input.type=type;});});
+$('#bulkResetPasswordsBtn')?.addEventListener('click',()=>{const section=sectionById(activeRosterSectionId);if(!section)return toast('Open a class roster first.','orange');const ids=studentsForSection(activeRosterSectionId).map(student=>student.id).filter(id=>selectedStudentIds.has(id));if(!ids.length)return toast('Select at least one student first.','orange');openResetPasswordsModal(section,ids);});
+$('#resetPasswordsForm')?.addEventListener('submit',async event=>{
+  event.preventDefault(); const section=sectionById(activeRosterSectionId); if(!section)return toast('Open a class roster first.','orange');
+  const passwordResets=resetPasswordStudentIds.map(studentId=>{const input=document.querySelector(`#resetPasswordRows input[data-reset-password-id="${CSS.escape(studentId)}"]`);return{student_id:studentId,password:String(input?.value||'').trim()};});
+  const invalid=passwordResets.find(item=>item.password.length<6||item.password.length>72); if(invalid){const student=studentById(invalid.student_id);return toast(`Enter a password with 6 to 72 characters for ${student?.display_name||'every selected student'}.`,'orange','Password required');}
+  const submitBtn=$('#confirmResetPasswordsBtn');
+  if(!startActionButton(submitBtn,'Resetting…'))return;
+  try{
+    let result=null,exportError=null; latestResetPasswordExport=null;
+    await withLoading('Resetting passwords…',`Applying the password${passwordResets.length===1?'':'s'} you chose.`,async()=>{
+      result=await invokeTeacherFunction('reset-student-passwords',{section_id:section.id,password_resets:passwordResets});
+      const reset=result?.reset||[];
+      if(reset.length){$('#loadingTitle').textContent='Preparing Excel…';$('#loadingMessage').textContent='Creating the reset-password file for download.';try{latestResetPasswordExport=await buildResetPasswordsExcel(reset,section);}catch(error){exportError=error;console.error('RESET PASSWORD EXCEL ERROR',error);}}
     });
-
-    const reset = result?.reset || [];
-    const failures = result?.failures || [];
-    if (reset.length) {
-      await downloadResetPasswordsExcel(reset, section);
-      selectedStudentIds.clear();
-      renderClassStudentsModal();
-      toast(`${reset.length} student password${reset.length === 1 ? '' : 's'} reset. The new credentials were downloaded.`, 'success');
+    const reset=result?.reset||[],failures=result?.failures||[];
+    if(reset.length){
+      await finishActionButton(submitBtn,'Done');
+      selectedStudentIds.clear();resetPasswordStudentIds=[];closeDialog('resetPasswordsModal');renderClassStudentsModal();renderResetPasswordsComplete(reset,section,exportError);
+    }else{
+      resetActionButton(submitBtn);
     }
-    if (failures.length) {
-      toast(`${failures.length} password${failures.length === 1 ? '' : 's'} could not be reset.\n\n${failures.map(item => `${item.name || 'Student'}: ${item.error || 'Reset failed.'}`).join('\n')}`, 'orange', 'Some resets failed');
-    }
-  } catch (error) {
-    console.error('RESET STUDENT PASSWORD ERROR', error);
-    toast(friendlyErrorMessage(error, 'Could not reset the selected student passwords. Please try again.'), 'orange');
-  }
-}
-
-$('#bulkResetPasswordsBtn')?.addEventListener('click', () => {
-  const section = sectionById(activeRosterSectionId);
-  if (!section) return toast('Open a class roster first.', 'orange');
-  const ids = studentsForSection(activeRosterSectionId).map(student => student.id).filter(id => selectedStudentIds.has(id));
-  if (!ids.length) return toast('Select at least one student first.', 'orange');
-  const selected = ids.map(studentById).filter(Boolean);
-  const label = selected.length === 1 ? selected[0].display_name : `${selected.length} selected students`;
-  pendingPasswordResetRequest = { sectionId: section.id, studentIds: [...ids] };
-  const text = $('#passwordResetConfirmText');
-  if (text) text.textContent = `Reset the password for ${label}? The old password will stop working after the reset.`;
-  openDialog('passwordResetConfirmModal');
+    if(failures.length)toast(`${failures.length} password${failures.length===1?'':'s'} could not be reset.\n\n${failures.map(item=>`${item.name||'Student'}: ${item.error||'Reset failed.'}`).join('\n')}`,'orange','Some resets failed');
+  }catch(error){resetActionButton(submitBtn);console.error('RESET STUDENT PASSWORD ERROR',error);toast(friendlyErrorMessage(error,'Could not reset the selected student passwords. Please try again.'),'orange');}
 });
 
-$('#confirmPasswordResetBtn')?.addEventListener('click', async () => {
-  closeDialog('passwordResetConfirmModal');
-  await runPendingPasswordReset();
-});
+$('#downloadResetPasswordsExcelBtn')?.addEventListener('click',()=>downloadPreparedResetExcel(latestResetPasswordExport));
 
 function renderStudentTracking(sectionId, studentId) {
   const section = sectionById(sectionId);
@@ -1409,11 +1404,14 @@ $('#dashboardCreateClass').addEventListener('click', openSectionModal);
 $('#sectionForm').addEventListener('submit', async event => {
   event.preventDefault();
   if (!requireSupabase()) return;
-  const form = new FormData(event.currentTarget);
+  const formElement = event.currentTarget;
+  const submitBtn = formElement.querySelector('button[type="submit"]');
+  const form = new FormData(formElement);
   const grade = Number(form.get('grade_level'));
   const name = String(form.get('name') || '').trim();
   const colors = { 7:'#ff6b00', 8:'#ff8f00', 9:'#ff4f81', 10:'#3e8ef7', 11:'#7b61c8', 12:'#2c9c78' };
   if (!name) return toast('Enter a class name.', 'orange');
+  if (!startActionButton(submitBtn, 'Creating…')) return;
   try {
     await withLoading('Creating class…', `Setting up ${name} for Grade ${grade}.`, async () => {
       const { data, error } = await db.from('classside_sections').insert({
@@ -1424,12 +1422,14 @@ $('#sectionForm').addEventListener('submit', async event => {
       }).select().single();
       if (error) throw error;
       activeSectionId = data.id;
-      closeDialog('sectionModal');
       await refreshTeacher();
       showTeacherView('classes');
     });
+    await finishActionButton(submitBtn, 'Done');
+    closeDialog('sectionModal');
     toast('Class created.', 'success');
   } catch (error) {
+    resetActionButton(submitBtn);
     console.error(error);
     toast(friendlyErrorMessage(error, 'Could not create the class.'), 'orange');
   }
@@ -1921,10 +1921,10 @@ $('#saveStudentsBtn').addEventListener('click', async () => {
   const students = currentStudentEntryRows();
   if (!students.length) return toast('Enter at least one student name.', 'orange');
   if (students.length > MAX_STUDENTS_PER_ADD) return toast(`You can generate up to ${MAX_STUDENTS_PER_ADD} student accounts at a time.`, 'orange');
+  const submitBtn = $('#saveStudentsBtn');
+  if (!startActionButton(submitBtn, 'Creating accounts…')) return;
 
   try {
-    closeDialog('studentModal');
-
     let result = { created: [], failures: [], section: null };
     await withLoading('Creating student accounts…', `Generating ${students.length} secure student account${students.length === 1 ? '' : 's'}.`, async () => {
       for (let start = 0; start < students.length; start += STUDENT_CREATE_BATCH_SIZE) {
@@ -1954,13 +1954,20 @@ $('#saveStudentsBtn').addEventListener('click', async () => {
       lastGeneratedSection = result.section || sectionById(activeSectionId) || null;
     }
     $('#generatedAccountsBody').innerHTML = created.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.gender)}</td><td><b>${esc(s.username)}</b></td><td><b>${esc(s.temporary_password)}</b></td></tr>`).join('');
-    if (created.length) openDialog('accountsModal');
+    if (created.length) {
+      await finishActionButton(submitBtn, 'Done');
+      closeDialog('studentModal');
+      openDialog('accountsModal');
+    } else {
+      resetActionButton(submitBtn);
+    }
     if (failures.length) {
       const details = failures.map(f => `${f.name || 'Student'}: ${f.error || 'Account creation failed.'}`).join('\n');
       toast(`${failures.length} account${failures.length === 1 ? '' : 's'} could not be created.\n\n${details}`, 'orange');
     }
     if (created.length) toast(`${created.length} student account${created.length === 1 ? '' : 's'} created.`, 'success');
   } catch (error) {
+    resetActionButton(submitBtn);
     console.error(error);
     toast(friendlyErrorMessage(error, 'Could not create student accounts. Please try again.'), 'orange');
   }
@@ -2395,6 +2402,9 @@ $('#assignmentForm').addEventListener('submit', async event => {
     return toast('The assignment deadline must be after the scheduled posting time.', 'orange', 'Check the schedule');
   }
 
+  const submitBtn = $('#assignmentSubmitBtn');
+  if (!startActionButton(submitBtn, editingAssignmentId ? 'Updating…' : 'Posting…')) return;
+
   if (editingAssignmentId) {
     const assignmentsToUpdate = (editingAssignmentIds.length ? editingAssignmentIds : [editingAssignmentId])
       .map(id => assignmentById(id))
@@ -2411,13 +2421,14 @@ $('#assignmentForm').addEventListener('submit', async event => {
           for (const assignment of assignmentsToUpdate) {
             await updateExistingAssignment(assignment, form, questions, dueAt, reminderHours, publishStatus, publishAt);
           }
-          closeDialog('assignmentModal');
           editingAssignmentId = null;
           editingAssignmentIds = [];
           await refreshTeacher();
           showTeacherView('assignments');
         }
       );
+      await finishActionButton(submitBtn, 'Done');
+      closeDialog('assignmentModal');
       toast(
         publishStatus === 'draft'
           ? `Assignment scheduled for ${formatDeadlineDate(publishAt)}${copyCount > 1 ? ` in ${copyCount} classes` : ''}.`
@@ -2426,6 +2437,7 @@ $('#assignmentForm').addEventListener('submit', async event => {
         publishStatus === 'draft' ? 'Assignment scheduled' : 'Assignment updated'
       );
     } catch (error) {
+      resetActionButton(submitBtn);
       console.error(error);
       toast(friendlyErrorMessage(error, 'Could not save the assignment changes.'), 'orange', 'Save failed');
     }
@@ -2487,11 +2499,12 @@ $('#assignmentForm').addEventListener('submit', async event => {
           if (keyRes.error) throw keyRes.error;
         }
 
-        closeDialog('assignmentModal');
         await refreshTeacher();
         showTeacherView('assignments');
       }
     );
+    await finishActionButton(submitBtn, 'Done');
+    closeDialog('assignmentModal');
     toast(
       publishStatus === 'draft'
         ? `Assignment scheduled for ${formatDeadlineDate(publishAt)}${sectionIds.length > 1 ? ` in ${sectionIds.length} classes` : ''}.`
@@ -2500,6 +2513,7 @@ $('#assignmentForm').addEventListener('submit', async event => {
       publishStatus === 'draft' ? 'Assignment scheduled' : 'Assignment posted'
     );
   } catch (error) {
+    resetActionButton(submitBtn);
     console.error(error);
     if (uploadedPaths.length) { try { await db.storage.from('classside-assignment-images').remove(uploadedPaths); } catch {} }
     const createdIds = createdAssignments.map(assignment => assignment.id).filter(Boolean);
@@ -3284,6 +3298,8 @@ $('#answerForm').addEventListener('submit', async event => {
 
   const previousProofPaths = submissionProofPaths(submissionFor(activeStudentAssignment.id));
   const uploadedPaths = [];
+  const submitBtn = event.currentTarget.querySelector('button[type="submit"]');
+  if (!startActionButton(submitBtn, 'Submitting…')) return;
   try {
     let rpcResult;
     await withLoading('Submitting your answers…', `Uploading ${proofFiles.length} work picture${proofFiles.length === 1 ? '' : 's'} and saving your answers.`, async () => {
@@ -3304,12 +3320,14 @@ $('#answerForm').addEventListener('submit', async event => {
       if (previousProofPaths.length) {
         try { await db.storage.from('classside-submission-proofs').remove(previousProofPaths); } catch {}
       }
-      closeDialog('answerModal');
       await window.EduCoreV10?.clearDraft?.(activeStudentAssignment.id);
       await refreshStudent();
     });
+    await finishActionButton(submitBtn, 'Done');
+    closeDialog('answerModal');
     toast(`Submitted! Auto-check score: ${Number(rpcResult?.auto_score || 0)}/${totalPoints(activeStudentAssignment.id)}.`, 'success');
   } catch (error) {
+    resetActionButton(submitBtn);
     console.error(error);
     if (uploadedPaths.length) { try { await db.storage.from('classside-submission-proofs').remove(uploadedPaths); } catch {} }
     toast(friendlyErrorMessage(error, 'Could not submit your answers.'), 'orange');

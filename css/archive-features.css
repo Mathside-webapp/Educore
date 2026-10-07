@@ -16,6 +16,9 @@
 .class-card-copy h3{overflow-wrap:normal;word-break:normal;hyphens:none}
 
 .btn-archive{border:1px solid #a86a35;background:#fff8f0;color:#7b4218}.btn-archive:hover{background:#f7e5d3;border-color:#8e5225}.btn-archive:disabled{opacity:.45;cursor:not-allowed}
+
+/* V24.3: restore archived activities/performance tasks */
+.btn-unarchive{border:1px solid #7ea78b;background:#f3fbf5;color:#28623a}.btn-unarchive:hover{background:#e3f5e8;border-color:#5f8e6e}.btn-unarchive:disabled{opacity:.45;cursor:not-allowed}
 .assignment-archived{background:linear-gradient(90deg,#f7f3ef,#fff);border-style:dashed}.archived-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;background:#e9e1da;color:#674e3e;font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
 .archive-confirm-box{max-width:610px}.archive-confirm-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:#fff0e3;color:#d85b00;font-size:28px;font-weight:900;margin-bottom:12px}.archive-confirm-icon.danger{background:#fff0f0;color:#a82323}.archive-warning{display:flex;flex-direction:column;gap:6px;padding:14px 15px;border:1px solid #efc49f;background:#fff8f2;border-radius:14px;color:#604736;line-height:1.45}.archive-warning.danger{border-color:#efb8b8;background:#fff5f5;color:#6c3434}.archive-warning b{font-size:13px}.archive-warning span{font-size:12px}
 
