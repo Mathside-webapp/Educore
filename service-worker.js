@@ -1,8 +1,8 @@
-/* EduCore PWA — V3.2.0
+/* EduCore PWA — V3.3 Archive Center
    GitHub Pages + localhost friendly.
    Provides app-shell caching, a graceful offline fallback, and controlled updates. */
 
-const CACHE_NAME = 'educore-pwa-v3.2.0';
+const CACHE_NAME = 'educore-pwa-v3.3-archive-center';
 const CACHE_PREFIX = 'educore-pwa-';
 
 const APP_SHELL = [
@@ -15,6 +15,7 @@ const APP_SHELL = [
   './icons/educore-icon-512.png',
   './icons/educore-maskable-512.png',
   './assets/educore-logos/educore-general.png?v=305',
+  './assets/educore-maintenance.svg?v=330',
   './assets/educore-logos/educore-english.png?v=305',
   './assets/educore-logos/educore-filipino.png?v=305',
   './assets/educore-logos/educore-araling-panlipunan.png?v=305',
@@ -34,12 +35,12 @@ const APP_SHELL = [
   './js/design-v9.js?v=9',
   './js/pwa.js?v=6.9.16',
   './js/push-notifications.js?v=6.9.1',
-  './css/archive-features.css?v=12.3',
+  './css/archive-features.css?v=12.4',
   './css/layout-fixes.css?v=14.0',
   './css/work-types-v21.css?v=15.12',
   './css/subject-themes.css?v=3.0.5',
-  './js/archive-features.js?v=15.6',
-  './js/work-types-v21.js?v=16.4'
+  './js/archive-features.js?v=15.7',
+  './js/work-types-v21.js?v=16.5'
 ];
 
 self.addEventListener('install', (event) => {

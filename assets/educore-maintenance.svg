@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+<title id="title">EduCore Under Maintenance</title><desc id="desc">A clean EduCore classroom maintenance illustration.</desc>
+<rect width="1200" height="630" rx="36" fill="#f8fafc"/>
+<circle cx="1040" cy="105" r="150" fill="#eef2ff"/><circle cx="125" cy="535" r="120" fill="#ede9fe"/>
+<rect x="90" y="82" width="1020" height="466" rx="32" fill="#ffffff" stroke="#e2e8f0" stroke-width="3"/>
+<rect x="145" y="140" width="420" height="285" rx="24" fill="#eef2ff"/>
+<rect x="190" y="182" width="330" height="170" rx="18" fill="#ffffff" stroke="#c7d2fe" stroke-width="3"/>
+<path d="M250 310l68-74 58 50 63-83 45 107" fill="none" stroke="#4f46e5" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="290" cy="220" r="18" fill="#8b5cf6"/>
+<rect x="215" y="380" width="280" height="18" rx="9" fill="#c7d2fe"/>
+<g transform="translate(645 155)">
+<rect x="0" y="0" width="355" height="54" rx="27" fill="#4f46e5"/><text x="177.5" y="36" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700" fill="#ffffff">EDUCORE</text>
+<text x="0" y="122" font-family="Arial,Helvetica,sans-serif" font-size="52" font-weight="800" fill="#0f172a">Under Maintenance</text>
+<text x="0" y="173" font-family="Arial,Helvetica,sans-serif" font-size="24" fill="#64748b">We’re preparing your classroom.</text>
+<text x="0" y="210" font-family="Arial,Helvetica,sans-serif" font-size="24" fill="#64748b">Please try again in a moment.</text>
+<g transform="translate(0 265)"><circle cx="28" cy="28" r="28" fill="#eef2ff"/><path d="M16 28h24M28 16v24" stroke="#4f46e5" stroke-width="6" stroke-linecap="round"/><rect x="74" y="8" width="245" height="18" rx="9" fill="#cbd5e1"/><rect x="74" y="38" width="185" height="14" rx="7" fill="#e2e8f0"/></g>
+</g>
+</svg>

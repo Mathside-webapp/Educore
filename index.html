@@ -19,7 +19,7 @@
 <link href="css/student-v8.css?v=10.5" rel="stylesheet"/>
 <link href="css/design-v9.css?v=9.1" rel="stylesheet"/>
 <link href="css/classroom-features.css?v=11.5" rel="stylesheet"/>
-<link href="css/archive-features.css?v=12.3" rel="stylesheet">
+<link href="css/archive-features.css?v=12.4" rel="stylesheet">
 <link href="css/layout-fixes.css?v=14.0" rel="stylesheet">
 <link href="css/work-types-v21.css?v=15.12" rel="stylesheet"/>
 <link href="assets/favicon.ico?v=305" rel="icon" sizes="any"/><link href="assets/educore-logos/educore-general-32.png?v=305" rel="icon" sizes="32x32" type="image/png"/><link href="icons/educore-apple-touch-icon.png?v=305" rel="apple-touch-icon" sizes="180x180"/><link href="css/subject-themes.css?v=3.0.5" rel="stylesheet"/><link href="css/student-dashboard-v212.css?v=3.0" rel="stylesheet"/></head>
@@ -142,6 +142,7 @@
 <button class="side-link" data-view="assignments"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11h6M9 15h6"></path></svg><span>Written Works</span></button>
 <button class="side-link" data-view="performance"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg><span>Performance Tasks</span></button>
 <button class="side-link" data-view="submissions"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10M4 4h10M4 8h7"></path></svg><span>Submissions</span></button>
+<button class="side-link" data-view="archive"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 7h16v13H4zM3 4h18v3H3zM9 11h6"></path></svg><span>Archived</span></button>
 </nav>
 <button class="side-link signout" id="teacherSignout"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg><span>Sign out</span></button>
 </aside>
@@ -175,7 +176,7 @@
 <div class="section-row"><div><p class="eyebrow">CLASSWORK</p><h2>Written Works</h2><p class="muted">Post question-based learning activities to one or more classes.</p></div><div class="row-actions"><button class="btn btn-light compact-filter-button" id="activityFilterBtn" type="button" aria-expanded="false" aria-controls="activityFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="activityFilterBadge" class="filter-count-badge" hidden>0</span></button><button class="btn btn-orange" id="postAssignmentBtn"><svg aria-hidden="true" class="btn-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New written work</button></div></div>
 <div class="compact-filter-wrap"><div id="activityFilterPanel" class="compact-filter-panel" hidden>
 <div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER WRITTEN WORKS</p><h3>Show only what you need</h3></div><button type="button" class="icon-button compact-filter-close" id="activityFilterClose" aria-label="Close filters">×</button></div>
-<div class="performance-task-filter-grid"><label>Section<select id="activitySectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="activityStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option><option value="archived">Archived</option></select></label><label>Order<select id="activitySort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
+<div class="performance-task-filter-grid"><label>Section<select id="activitySectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="activityStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option></select></label><label>Order<select id="activitySort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
 <div class="compact-filter-actions"><button type="button" class="btn btn-light" id="activityClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="activityFilterDone">Done</button></div>
 </div></div>
 <div class="assignment-list" id="assignmentList"></div>
@@ -184,10 +185,24 @@
 <div class="section-row"><div><p class="eyebrow">PERFORMANCE TASK</p><h2>Performance Tasks</h2><p class="muted">Post project-based tasks with instructions, pictures, rubric, deadlines, reminders, and assigned sections.</p></div><div class="row-actions"><button class="btn btn-light compact-filter-button" id="performanceTaskFilterBtn" type="button" aria-expanded="false" aria-controls="performanceTaskFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="performanceTaskFilterBadge" class="filter-count-badge" hidden>0</span></button><button class="btn btn-orange" id="postPerformanceTaskBtn"><svg aria-hidden="true" class="btn-icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>New performance task</button></div></div>
 <div class="compact-filter-wrap"><div id="performanceTaskFilterPanel" class="compact-filter-panel" hidden>
 <div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER PERFORMANCE TASKS</p><h3>Show only what you need</h3></div><button type="button" class="icon-button compact-filter-close" id="performanceTaskFilterClose" aria-label="Close filters">×</button></div>
-<div class="performance-task-filter-grid"><label>Section<select id="performanceTaskSectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="performanceTaskStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option><option value="archived">Archived</option></select></label><label>Work setup<select id="performanceTaskModeFilter"><option value="all">All setups</option><option value="individual">Individual</option><option value="pair">Pair</option><option value="group">Group</option></select></label><label>Order<select id="performanceTaskSort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
+<div class="performance-task-filter-grid"><label>Section<select id="performanceTaskSectionFilter"><option value="all">All sections</option></select></label><label>Status<select id="performanceTaskStatusFilter"><option value="all">All statuses</option><option value="posted">Posted</option><option value="scheduled">Scheduled</option></select></label><label>Work setup<select id="performanceTaskModeFilter"><option value="all">All setups</option><option value="individual">Individual</option><option value="pair">Pair</option><option value="group">Group</option></select></label><label>Order<select id="performanceTaskSort"><option value="newest">Newest first</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option><option value="due">Deadline soonest</option></select></label></div>
 <div class="compact-filter-actions"><button type="button" class="btn btn-light" id="performanceTaskClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="performanceTaskFilterDone">Done</button></div>
 </div></div>
 <div class="assignment-list" id="performanceTaskList"></div>
+</section>
+<section class="app-view" id="view-archive">
+<div class="section-row"><div><p class="eyebrow">ARCHIVE CENTER</p><h2>Archived</h2><p class="muted">Archived classes, written works, and performance tasks are kept here and hidden from their regular panels.</p></div><button class="btn btn-light compact-filter-button" id="archiveFilterBtn" type="button" aria-expanded="false" aria-controls="archiveFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="archiveFilterBadge" class="filter-count-badge" hidden>0</span></button></div>
+<div class="archive-summary-grid" aria-label="Archive summary">
+<article><span>Classes</span><b id="archivedClassCount">0</b></article>
+<article><span>Written Works</span><b id="archivedActivityCount">0</b></article>
+<article><span>Performance Tasks</span><b id="archivedPerformanceCount">0</b></article>
+</div>
+<div class="compact-filter-wrap"><div id="archiveFilterPanel" class="compact-filter-panel" hidden>
+<div class="compact-filter-panel-head"><div><p class="eyebrow">FILTER ARCHIVED ITEMS</p><h3>Choose what to show</h3></div><button type="button" class="icon-button compact-filter-close" id="archiveFilterClose" aria-label="Close archive filters">×</button></div>
+<div class="performance-task-filter-grid archive-filter-grid"><label>Category<select id="archiveCategoryFilter"><option value="all">All archived</option><option value="class">Classes</option><option value="activity">Written Works</option><option value="performance">Performance Tasks</option></select></label><label>Order<select id="archiveSort"><option value="newest">Recently archived</option><option value="oldest">Oldest archived</option><option value="name">Alphabetical A–Z</option><option value="name-desc">Alphabetical Z–A</option></select></label></div>
+<div class="compact-filter-actions"><button type="button" class="btn btn-light" id="archiveClearFilters">Clear filters</button><button type="button" class="btn btn-orange" id="archiveFilterDone">Done</button></div>
+</div></div>
+<div id="archiveList" class="archive-center-list"></div>
 </section>
 <section class="app-view" id="view-submissions">
 <div class="section-row"><div><p class="eyebrow">STUDENT WORK</p><h2>Submissions</h2><p class="muted">Choose Written Works or Performance Tasks, then use Filter only when you need it.</p></div><button class="btn btn-light compact-filter-button" id="submissionFilterBtn" type="button" aria-expanded="false" aria-controls="submissionFilterPanel"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M7 12h10M10 19h4"/></svg>Filter <span id="submissionFilterBadge" class="filter-count-badge" hidden>0</span></button></div>
@@ -764,7 +779,7 @@
 <script src="js/design-v9.js?v=9"></script>
 <script src="js/pwa.js?v=6.9.16"></script>
 <script src="js/push-notifications.js?v=6.9.1"></script>
-<script src="js/archive-features.js?v=15.6"></script>
-<script src="js/work-types-v21.js?v=16.4"></script>
+<script src="js/archive-features.js?v=15.7"></script>
+<script src="js/work-types-v21.js?v=16.5"></script>
 </body>
 </html>

@@ -16,6 +16,8 @@
   let activitySectionFilter = 'all';
   let activityStatusFilter = 'all';
   let activitySort = 'newest';
+  let archiveCategoryFilter = 'all';
+  let archiveSort = 'newest';
   const performanceLeaderSelections = new Map();
   const performanceTeamOrders = new Map();
   let performanceGroupingDirty = false;
@@ -113,6 +115,10 @@
       renderPerformanceTasks();
     }
     if (view === 'assignments') $('#teacherPageTitle').textContent = 'Written Works';
+    if (view === 'archive') {
+      $('#teacherPageTitle').textContent = 'Archived';
+      renderArchiveCenter();
+    }
   };
 
   renderTeacher = function() {
@@ -122,6 +128,7 @@
     const assignmentTotal = $('#assignmentTotal');
     if (assignmentTotal) assignmentTotal.textContent = String(writtenWorks().filter(a => a.status !== 'archived').length);
     renderPerformanceTasks();
+    renderArchiveCenter();
   };
 
   // ---------------------------------------------------------------
@@ -149,11 +156,12 @@
   }
 
   function activityGroupsForDisplay() {
-    activityStatusFilter = ['all','posted','scheduled','archived'].includes(activityStatusFilter) ? activityStatusFilter : 'all';
+    activityStatusFilter = ['all','posted','scheduled'].includes(activityStatusFilter) ? activityStatusFilter : 'all';
     activitySort = ['newest','name','name-desc','due'].includes(activitySort) ? activitySort : 'newest';
     syncActivityFilterUi();
     const groups = groupedAssignmentsForDisplay().filter(group => {
       if (!group.length || isPerformanceTask(group[0])) return false;
+      if (activityGroupState(group) === 'archived') return false;
       if (activitySectionFilter !== 'all' && !group.some(item => item.section_id === activitySectionFilter)) return false;
       return activityStatusFilter === 'all' || activityGroupState(group) === activityStatusFilter;
     });
@@ -192,7 +200,7 @@
   renderAssignments = function() {
     const list = $('#assignmentList');
     if (!list) return;
-    const allGroups = groupedAssignmentsForDisplay().filter(group => group.length && !isPerformanceTask(group[0]));
+    const allGroups = groupedAssignmentsForDisplay().filter(group => group.length && !isPerformanceTask(group[0]) && activityGroupState(group) !== 'archived');
     const groups = activityGroupsForDisplay();
     if (!groups.length) {
       selectedAssignmentIds.clear();
@@ -221,7 +229,7 @@
         <div class="assignment-card-actions"><button class="btn btn-light" data-preview-assignment="${assignment.id}">Preview</button>${archived ? `<button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(groupIdsAttr)}">Unarchive</button>` : `<button class="btn btn-light" data-edit-assignment="${assignment.id}">Edit</button><button class="btn btn-archive" data-archive-assignment-group="${esc(groupIdsAttr)}">Archive</button>`}<button class="btn btn-danger-outline" data-delete-assignment-group="${esc(groupIdsAttr)}">Delete</button></div>
       </article>`;
     }).join('');
-    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all written works</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-unarchive" id="bulkUnarchiveAssignmentsBtn" type="button" disabled>Unarchive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
+    list.innerHTML = `<div class="bulk-toolbar assignment-bulk-toolbar"><label class="bulk-select-all"><input id="selectAllAssignments" class="row-check" type="checkbox"><span>Select all written works</span></label><span class="bulk-selected-count" id="selectedAssignmentCount">0 selected</span><div class="bulk-actions"><button class="btn btn-archive" id="bulkArchiveAssignmentsBtn" type="button" disabled>Archive selected</button><button class="btn btn-danger" id="bulkDeleteAssignmentsBtn" type="button" disabled>Delete selected</button></div></div>${cards}`;
     updateAssignmentBulkToolbar();
   };
 
@@ -744,11 +752,12 @@
   function renderPerformanceTasks() {
     const list = $('#performanceTaskList');
     if (!list) return;
-    performanceTaskStatusFilter = ['all','posted','scheduled','archived'].includes(performanceTaskStatusFilter) ? performanceTaskStatusFilter : 'all';
+    performanceTaskStatusFilter = ['all','posted','scheduled'].includes(performanceTaskStatusFilter) ? performanceTaskStatusFilter : 'all';
     performanceTaskModeFilter = ['all','individual','pair','group'].includes(performanceTaskModeFilter) ? performanceTaskModeFilter : 'all';
     performanceTaskSort = ['newest','name','name-desc','due'].includes(performanceTaskSort) ? performanceTaskSort : 'newest';
     syncPerformanceTaskFilterUi();
     let groups = performanceGroups().filter(group => {
+      if (performanceTaskGroupState(group) === 'archived') return false;
       if (performanceTaskSectionFilter !== 'all' && !group.some(task => task.section_id === performanceTaskSectionFilter)) return false;
       if (performanceTaskStatusFilter !== 'all' && performanceTaskGroupState(group) !== performanceTaskStatusFilter) return false;
       const mode = group[0]?.collaboration_mode || 'individual';
@@ -786,12 +795,122 @@
   }
   window.renderPerformanceTasks = renderPerformanceTasks;
 
+
+  // ---------------------------------------------------------------
+  // ARCHIVE CENTER — classes, written works and performance tasks
+  // ---------------------------------------------------------------
+  function archiveRecordTime(value, fallback) {
+    const time = value ? new Date(value).getTime() : 0;
+    return Number.isFinite(time) && time > 0 ? time : (fallback ? new Date(fallback).getTime() : 0);
+  }
+
+  function archiveDateLabel(value) {
+    if (!value) return 'Archived';
+    try { return `Archived ${formatDeadlineDate(value)}`; }
+    catch (_) { return 'Archived'; }
+  }
+
+  function archivedWrittenGroups() {
+    return groupedAssignmentsForDisplay().filter(group => group.length && !isPerformanceTask(group[0]) && group.every(item => item.status === 'archived'));
+  }
+
+  function archivedPerformanceGroups() {
+    return performanceGroups().filter(group => group.length && group.every(item => item.status === 'archived'));
+  }
+
+  function syncArchiveFilterUi() {
+    const category = $('#archiveCategoryFilter');
+    const sort = $('#archiveSort');
+    if (category) category.value = archiveCategoryFilter;
+    if (sort) sort.value = archiveSort;
+    const activeCount = Number(archiveCategoryFilter !== 'all') + Number(archiveSort !== 'newest');
+    const badge = $('#archiveFilterBadge');
+    if (badge) { badge.textContent = String(activeCount); badge.hidden = activeCount === 0; }
+  }
+
+  function archiveClassCard(section) {
+    const students = studentsForSection(section.id).length;
+    return `<article class="archive-record archive-record-class">
+      <div class="archive-record-icon">${iconSvg('class','assignment-line-icon')}</div>
+      <div class="archive-record-body"><div class="archive-record-title"><span class="archive-type-pill">Class</span><h3>${esc(section.name)}</h3></div><p>Grade ${esc(section.grade_level)} · ${students} student${students===1?'':'s'}</p><div class="assignment-meta"><span class="meta-chip">${esc(archiveDateLabel(section.archived_at))}</span></div></div>
+      <div class="archive-record-actions"><button class="btn btn-light" type="button" data-view-class-students="${esc(section.id)}">View students</button><button class="btn btn-unarchive" type="button" data-unarchive-class="${esc(section.id)}">Unarchive</button><button class="btn btn-light" type="button" data-create-from-archive="${esc(section.id)}">Reuse students</button><button class="btn btn-danger-outline" type="button" data-delete-class="${esc(section.id)}">Delete</button></div>
+    </article>`;
+  }
+
+  function archiveWrittenWorkCard(group) {
+    const a = group[0];
+    const ids = group.map(item => item.id);
+    const labels = assignmentGroupSectionLabels(group);
+    return `<article class="archive-record archive-record-activity">
+      <div class="archive-record-icon">${iconSvg('assignment','assignment-line-icon')}</div>
+      <div class="archive-record-body"><div class="archive-record-title"><span class="archive-type-pill">Written Work</span><h3>${esc(a.title)}</h3></div><p>${esc(a.instructions || 'Written work')}</p><div class="assignment-meta"><span class="meta-chip">${labels.length===1?esc(labels[0]):`${labels.length} classes`}</span><span class="meta-chip">${esc(archiveDateLabel(a.archived_at))}</span></div></div>
+      <div class="archive-record-actions"><button class="btn btn-light" data-preview-assignment="${esc(a.id)}">Preview</button><button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(ids.join(','))}">Unarchive</button><button class="btn btn-danger-outline" data-delete-assignment-group="${esc(ids.join(','))}">Delete</button></div>
+    </article>`;
+  }
+
+  function archivePerformanceCard(group) {
+    const a = group[0];
+    const ids = group.map(item => item.id);
+    const labels = groupSectionLabels(group);
+    return `<article class="archive-record archive-record-performance">
+      <div class="archive-record-icon">▣</div>
+      <div class="archive-record-body"><div class="archive-record-title"><span class="archive-type-pill">Performance Task</span><h3>${esc(a.title)}</h3></div><p>${esc(a.instructions || 'Performance task')}</p><div class="assignment-meta"><span class="meta-chip">${labels.length===1?esc(labels[0]):`${labels.length} classes`}</span><span class="meta-chip">${esc(collaborationLabel(a))}</span><span class="meta-chip">${esc(archiveDateLabel(a.archived_at))}</span></div></div>
+      <div class="archive-record-actions"><button class="btn btn-light" data-preview-assignment="${esc(a.id)}">Preview</button><button class="btn btn-unarchive" data-unarchive-assignment-group="${esc(ids.join(','))}">Unarchive</button><button class="btn btn-danger-outline" data-delete-assignment-group="${esc(ids.join(','))}">Delete</button></div>
+    </article>`;
+  }
+
+  function renderArchiveCenter() {
+    const list = $('#archiveList');
+    if (!list) return;
+    archiveCategoryFilter = ['all','class','activity','performance'].includes(archiveCategoryFilter) ? archiveCategoryFilter : 'all';
+    archiveSort = ['newest','oldest','name','name-desc'].includes(archiveSort) ? archiveSort : 'newest';
+    syncArchiveFilterUi();
+
+    const classes = state.sections.filter(section => Boolean(section.archived_at));
+    const activities = archivedWrittenGroups();
+    const performance = archivedPerformanceGroups();
+    $('#archivedClassCount') && ($('#archivedClassCount').textContent = String(classes.length));
+    $('#archivedActivityCount') && ($('#archivedActivityCount').textContent = String(activities.length));
+    $('#archivedPerformanceCount') && ($('#archivedPerformanceCount').textContent = String(performance.length));
+
+    let records = [
+      ...classes.map(section => ({ category:'class', name:String(section.name||''), time:archiveRecordTime(section.archived_at, section.created_at), html:archiveClassCard(section) })),
+      ...activities.map(group => ({ category:'activity', name:String(group[0]?.title||''), time:Math.max(...group.map(a=>archiveRecordTime(a.archived_at,a.created_at))), html:archiveWrittenWorkCard(group) })),
+      ...performance.map(group => ({ category:'performance', name:String(group[0]?.title||''), time:Math.max(...group.map(a=>archiveRecordTime(a.archived_at,a.created_at))), html:archivePerformanceCard(group) }))
+    ];
+    if (archiveCategoryFilter !== 'all') records = records.filter(record => record.category === archiveCategoryFilter);
+    records.sort((a,b) => {
+      if (archiveSort === 'oldest') return a.time - b.time || a.name.localeCompare(b.name, undefined, {sensitivity:'base'});
+      if (archiveSort === 'name') return a.name.localeCompare(b.name, undefined, {sensitivity:'base'});
+      if (archiveSort === 'name-desc') return b.name.localeCompare(a.name, undefined, {sensitivity:'base'});
+      return b.time - a.time || a.name.localeCompare(b.name, undefined, {sensitivity:'base'});
+    });
+
+    if (!records.length) {
+      const filtered = archiveCategoryFilter !== 'all';
+      list.innerHTML = `<div class="assignment-empty v9-empty archive-empty"><span class="v9-empty-icon">▤</span><b>${filtered?'No archived items in this category':'Archive is empty'}</b><p>${filtered?'Choose another category from Filter.':'Archived classes, written works, and performance tasks will appear here.'}</p></div>`;
+      return;
+    }
+    list.innerHTML = records.map(record => record.html).join('');
+  }
+  window.renderArchiveCenter = renderArchiveCenter;
+
   function setCompactFilterPanel(buttonId, panelId, open) {
     const button = $(buttonId), panel = $(panelId);
     if (!button || !panel) return;
     panel.hidden = !open;
     button.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
+
+  $('#archiveFilterBtn')?.addEventListener('click', () => {
+    const panel = $('#archiveFilterPanel');
+    setCompactFilterPanel('#archiveFilterBtn', '#archiveFilterPanel', Boolean(panel?.hidden));
+  });
+  $('#archiveFilterClose')?.addEventListener('click', () => setCompactFilterPanel('#archiveFilterBtn', '#archiveFilterPanel', false));
+  $('#archiveFilterDone')?.addEventListener('click', () => setCompactFilterPanel('#archiveFilterBtn', '#archiveFilterPanel', false));
+  $('#archiveCategoryFilter')?.addEventListener('change', event => { archiveCategoryFilter = event.currentTarget.value || 'all'; renderArchiveCenter(); });
+  $('#archiveSort')?.addEventListener('change', event => { archiveSort = event.currentTarget.value || 'newest'; renderArchiveCenter(); });
+  $('#archiveClearFilters')?.addEventListener('click', () => { archiveCategoryFilter = 'all'; archiveSort = 'newest'; renderArchiveCenter(); });
 
   $('#activityFilterBtn')?.addEventListener('click', () => {
     const panel = $('#activityFilterPanel');
@@ -1450,5 +1569,5 @@
     if (state.profile?.role === 'student') renderStudentPerformanceTasks();
   }, 0);
 
-  window.EduCorePerformanceTasks = { renderPerformanceTasks, renderStudentPerformanceTasks, openPerformanceTaskModal };
+  window.EduCorePerformanceTasks = { renderPerformanceTasks, renderStudentPerformanceTasks, openPerformanceTaskModal, renderArchiveCenter };
 })();
