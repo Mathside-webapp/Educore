@@ -2,7 +2,7 @@
    GitHub Pages + localhost friendly.
    Provides app-shell caching, a graceful offline fallback, and controlled updates. */
 
-const CACHE_NAME = 'educore-pwa-v3.3-archive-center';
+const CACHE_NAME = 'educore-pwa-v3.4-classic-notifications-symbol';
 const CACHE_PREFIX = 'educore-pwa-';
 
 const APP_SHELL = [
@@ -10,37 +10,39 @@ const APP_SHELL = [
   './index.html',
   './offline.html',
   './manifest.webmanifest',
-  './icons/educore-apple-touch-icon.png?v=305',
+  './icons/educore-apple-touch-icon.png?v=340',
   './icons/educore-icon-192.png',
   './icons/educore-icon-512.png',
   './icons/educore-maskable-512.png',
-  './assets/educore-logos/educore-general.png?v=305',
+  './assets/educore-logos/educore-general.png?v=340',
   './assets/educore-maintenance.svg?v=330',
-  './assets/educore-logos/educore-english.png?v=305',
-  './assets/educore-logos/educore-filipino.png?v=305',
-  './assets/educore-logos/educore-araling-panlipunan.png?v=305',
-  './assets/educore-logos/educore-science.png?v=305',
-  './assets/educore-logos/educore-esp.png?v=305',
-  './assets/educore-logos/educore-tle.png?v=305',
-  './assets/educore-logos/educore-mapeh.png?v=305',
+  './assets/educore-logos/educore-english.png?v=340',
+  './assets/educore-logos/educore-filipino.png?v=340',
+  './assets/educore-logos/educore-araling-panlipunan.png?v=340',
+  './assets/educore-logos/educore-science.png?v=340',
+  './assets/educore-logos/educore-esp.png?v=340',
+  './assets/educore-logos/educore-tle.png?v=340',
+  './assets/educore-logos/educore-mapeh.png?v=340',
   './css/styles.css?v=13.2',
   './css/art-theme.css?v=7.0',
   './css/student-v8.css?v=10.5',
   './css/design-v9.css?v=9.1',
   './css/classroom-features.css?v=11.5',
   './js/config.js',
-  './js/app.js?v=16.4',
+  './js/app.js?v=17.0',
   './js/student-v8.js?v=15.0',
-  './js/classroom-features.js?v=16.3',
+  './js/classroom-features.js?v=17.0',
   './js/design-v9.js?v=9',
   './js/pwa.js?v=6.9.16',
-  './js/push-notifications.js?v=6.9.1',
+  './js/push-notifications.js?v=17.0',
   './css/archive-features.css?v=12.4',
   './css/layout-fixes.css?v=14.0',
   './css/work-types-v21.css?v=15.12',
   './css/subject-themes.css?v=3.0.5',
   './js/archive-features.js?v=15.7',
-  './js/work-types-v21.js?v=16.5'
+  './js/work-types-v21.js?v=16.5',
+  './js/classic-calendar.js?v=3.4',
+  './css/educore-v34-fixes.css?v=3.4'
 ];
 
 self.addEventListener('install', (event) => {

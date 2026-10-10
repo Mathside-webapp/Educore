@@ -35,14 +35,14 @@ function normalizedSubject(value = '') {
 function currentSubject() { return normalizedSubject(state?.profile?.subject) || ''; }
 
 const EDUCORE_LOGOS = {
-  general: 'assets/educore-logos/educore-general.png?v=305',
-  english: 'assets/educore-logos/educore-english.png?v=305',
-  filipino: 'assets/educore-logos/educore-filipino.png?v=305',
-  'araling-panlipunan': 'assets/educore-logos/educore-araling-panlipunan.png?v=305',
-  science: 'assets/educore-logos/educore-science.png?v=305',
-  esp: 'assets/educore-logos/educore-esp.png?v=305',
-  tle: 'assets/educore-logos/educore-tle.png?v=305',
-  mapeh: 'assets/educore-logos/educore-mapeh.png?v=305'
+  general: 'assets/educore-logos/educore-general.png?v=340',
+  english: 'assets/educore-logos/educore-english.png?v=340',
+  filipino: 'assets/educore-logos/educore-filipino.png?v=340',
+  'araling-panlipunan': 'assets/educore-logos/educore-araling-panlipunan.png?v=340',
+  science: 'assets/educore-logos/educore-science.png?v=340',
+  esp: 'assets/educore-logos/educore-esp.png?v=340',
+  tle: 'assets/educore-logos/educore-tle.png?v=340',
+  mapeh: 'assets/educore-logos/educore-mapeh.png?v=340'
 };
 
 function applyEduCoreLogo(slug = 'general') {
@@ -107,7 +107,9 @@ let studentGradeWatchTimer = null;
 let studentWorkspacePollBusy = false;
 let studentWorkspaceSignature = '';
 let studentWorkspaceFullRefreshAt = 0;
-const STUDENT_WORKSPACE_POLL_MS = 60000;
+const STUDENT_WORKSPACE_POLL_MS = 120000;
+let studentWorkspacePollFailures = 0;
+let studentWorkspaceNextAllowedAt = 0;
 const STUDENT_WORKSPACE_FULL_REFRESH_MS = 15 * 60 * 1000;
 let studentLoginAlertsShownFor = null;
 let activeRosterSectionId = null;
@@ -681,13 +683,15 @@ async function fetchStudentWorkspaceSignature() {
 
 async function checkStudentGradeUpdates() {
   if (!db || state.profile?.role !== 'student' || !state.user?.id) return;
-  if (studentWorkspacePollBusy || document.visibilityState !== 'visible' || !navigator.onLine) return;
+  if (studentWorkspacePollBusy || document.visibilityState !== 'visible' || !navigator.onLine || Date.now() < studentWorkspaceNextAllowedAt) return;
   studentWorkspacePollBusy = true;
   try {
-    // Keep the 60-second schedule responsiveness, but only ask Supabase for the
+    // Check at reasonable intervals, and ask Supabase only for the
     // newest assignment/submission timestamps. A full workspace reload happens
     // only when something actually changed.
     const remoteSignature = await fetchStudentWorkspaceSignature();
+    studentWorkspacePollFailures = 0;
+    studentWorkspaceNextAllowedAt = 0;
     const periodicRefreshDue = !studentWorkspaceFullRefreshAt || Date.now() - studentWorkspaceFullRefreshAt >= STUDENT_WORKSPACE_FULL_REFRESH_MS;
     if (remoteSignature === studentWorkspaceSignature && !periodicRefreshDue) return;
     await loadStudentData();
@@ -695,6 +699,8 @@ async function checkStudentGradeUpdates() {
     renderStudentDashboard();
     showStudentPanel(activeStudentPanel);
   } catch (error) {
+    studentWorkspacePollFailures += 1;
+    studentWorkspaceNextAllowedAt = Date.now() + Math.min(15 * 60000, STUDENT_WORKSPACE_POLL_MS * Math.pow(2, studentWorkspacePollFailures - 1));
     console.warn('Student workspace refresh skipped:', error?.message || error);
   } finally {
     studentWorkspacePollBusy = false;

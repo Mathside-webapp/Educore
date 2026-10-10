@@ -11,9 +11,9 @@
 <meta content="EduCore" name="apple-mobile-web-app-title"/>
 <title>EduCore — Classroom</title>
 <meta content="An energetic classroom for teachers and students." name="description"/>
-<link href="assets/educore-logos/educore-general-32.png?v=305" rel="icon" sizes="32x32" type="image/png"/>
+<link href="assets/educore-logos/educore-general-32.png?v=340" rel="icon" sizes="32x32" type="image/png"/>
 <link href="manifest.webmanifest" rel="manifest"/>
-<link href="icons/educore-apple-touch-icon.png?v=305" rel="apple-touch-icon" sizes="180x180"/>
+<link href="icons/educore-apple-touch-icon.png?v=340" rel="apple-touch-icon" sizes="180x180"/>
 <link href="css/styles.css?v=13.2" rel="stylesheet"/>
 <link href="css/art-theme.css?v=7.0" rel="stylesheet"/>
 <link href="css/student-v8.css?v=10.5" rel="stylesheet"/>
@@ -22,7 +22,8 @@
 <link href="css/archive-features.css?v=12.4" rel="stylesheet">
 <link href="css/layout-fixes.css?v=14.0" rel="stylesheet">
 <link href="css/work-types-v21.css?v=15.12" rel="stylesheet"/>
-<link href="assets/favicon.ico?v=305" rel="icon" sizes="any"/><link href="assets/educore-logos/educore-general-32.png?v=305" rel="icon" sizes="32x32" type="image/png"/><link href="icons/educore-apple-touch-icon.png?v=305" rel="apple-touch-icon" sizes="180x180"/><link href="css/subject-themes.css?v=3.0.5" rel="stylesheet"/><link href="css/student-dashboard-v212.css?v=3.0" rel="stylesheet"/></head>
+<link href="assets/favicon.ico?v=340" rel="icon" sizes="any"/><link href="assets/educore-logos/educore-general-32.png?v=340" rel="icon" sizes="32x32" type="image/png"/><link href="icons/educore-apple-touch-icon.png?v=340" rel="apple-touch-icon" sizes="180x180"/><link href="css/subject-themes.css?v=3.0.5" rel="stylesheet"/><link href="css/student-dashboard-v212.css?v=3.0" rel="stylesheet"/><link href="css/educore-v34-fixes.css?v=3.4" rel="stylesheet"/>
+</head>
 <body>
 <div class="app-loading" hidden="" id="appLoading">
 <div class="loading-card">
@@ -142,6 +143,7 @@
 <button class="side-link" data-view="assignments"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 11h6M9 15h6"></path></svg><span>Written Works</span></button>
 <button class="side-link" data-view="performance"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5M7 3v4M17 3v4"></path></svg><span>Performance Tasks</span></button>
 <button class="side-link" data-view="submissions"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M5 12.5 10 17l9-10M4 4h10M4 8h7"></path></svg><span>Submissions</span></button>
+<button class="side-link" data-view="calendar"><svg aria-hidden="true" class="ui-icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M7 2v6M17 2v6M3 11h18"></path></svg><span>Calendar</span></button>
 <button class="side-link" data-view="archive"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M4 7h16v13H4zM3 4h18v3H3zM9 11h6"></path></svg><span>Archived</span></button>
 </nav>
 <button class="side-link signout" id="teacherSignout"><svg aria-hidden="true" class="ui-icon" viewbox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9"></path></svg><span>Sign out</span></button>
@@ -167,6 +169,12 @@
 </div>
 <div class="section-row"><div><p class="eyebrow">MY CLASSES</p><p class="muted">Quick access to your classes</p></div><div class="row-actions"><button class="btn btn-light" data-go-view="classes">Manage classes</button><button class="btn btn-orange" id="dashboardCreateClass"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Create class</button></div></div>
 <div class="class-grid" id="dashboardClassGrid"></div>
+</section>
+<section class="app-view" id="view-calendar">
+<div class="section-row"><div><p class="eyebrow">TEACHER CALENDAR</p><h2>Calendar</h2><p class="muted">Written work and performance task deadlines for your classes.</p></div></div>
+<div class="classic-calendar-toolbar"><label>Class <select id="classicCalendarClass"><option value="all">All classes</option></select></label><div class="classic-calendar-month-nav"><button class="btn btn-light" type="button" id="classicCalendarPrev" aria-label="Previous month">‹</button><strong id="classicCalendarMonth">Month</strong><button class="btn btn-light" type="button" id="classicCalendarNext" aria-label="Next month">›</button><button class="btn btn-orange" type="button" id="classicCalendarToday">Today</button></div></div>
+<div class="classic-calendar-wrapper"><div class="classic-calendar-weekdays"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div><div class="classic-calendar-grid" id="classicCalendarGrid"></div></div>
+<section class="classic-calendar-agenda"><h3 id="classicAgendaTitle">Deadlines</h3><div id="classicAgendaList"></div></section>
 </section>
 <section class="app-view" id="view-classes">
 <div class="section-row"><div><p class="eyebrow">STUDENT ORGANIZATION</p><h2>Classes</h2><p class="muted">Create a class, choose its grade level, then add students to that class.</p></div><button class="btn btn-orange" id="createClassBtn"><svg aria-hidden="true" class="btn-icon" viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>Create class</button></div>
@@ -773,13 +781,14 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
-<script src="js/app.js?v=16.4"></script>
+<script src="js/app.js?v=17.0"></script>
 <script src="js/student-v8.js?v=15.0"></script>
-<script src="js/classroom-features.js?v=16.3"></script>
+<script src="js/classroom-features.js?v=17.0"></script>
 <script src="js/design-v9.js?v=9"></script>
 <script src="js/pwa.js?v=6.9.16"></script>
-<script src="js/push-notifications.js?v=6.9.1"></script>
+<script src="js/push-notifications.js?v=17.0"></script>
 <script src="js/archive-features.js?v=15.7"></script>
 <script src="js/work-types-v21.js?v=16.5"></script>
+<script src="js/classic-calendar.js?v=3.4"></script>
 </body>
 </html>

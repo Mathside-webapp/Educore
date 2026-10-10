@@ -13,6 +13,8 @@
     notificationFetchedAt: 0,
     notificationFetchPromise: null,
     notificationUserId: null,
+    notificationFailures: 0,
+    notificationRetryAt: 0,
     pollTimer: null
   };
 
@@ -49,8 +51,8 @@
     if (days <= 7) return { label: `Due in ${days} days`, key: 'soon' };
     return { label: `Due ${formatFullDate(d)}`, key: 'later' };
   };
-  const NOTIFICATION_CACHE_MS = 60000;
-  const NOTIFICATION_POLL_MS = 180000;
+  const NOTIFICATION_CACHE_MS = 90000;
+  const NOTIFICATION_POLL_MS = 300000;
   const currentUserId = () => state.user?.id || null;
   const connected = () => Boolean(db && currentUserId());
   const studentAssignments = () => state.assignments.filter(a => a.status === 'published');
@@ -294,7 +296,7 @@
   // ------------------------------------------------------------------
   function ensureNotificationDialog() {
     if (document.getElementById('v10NotificationDialog')) return;
-    document.body.insertAdjacentHTML('beforeend', `<dialog id="v10NotificationDialog" class="modal v10-notification-dialog"><div class="modal-box v10-notification-box"><button class="modal-close" type="button" id="v10NotificationClose" aria-label="Close">×</button><div class="v10-notification-title"><div><p class="eyebrow">EDUCORE UPDATES</p><h2>Notifications</h2></div><div class="v10-notification-actions"><button type="button" class="btn btn-light btn-small" id="v10PushNotificationBtn">Enable app alerts</button><button type="button" class="btn btn-light btn-small" id="v10MarkAllRead">Mark all read</button><button type="button" class="btn btn-danger-outline btn-small" id="v10ClearNotifications">Clear all</button></div></div><div id="v10NotificationList" class="v10-notification-list"></div></div></dialog>`);
+    document.body.insertAdjacentHTML('beforeend', `<dialog id="v10NotificationDialog" class="modal v10-notification-dialog"><div class="modal-box v10-notification-box"><button class="modal-close" type="button" id="v10NotificationClose" aria-label="Close">×</button><div class="v10-notification-title"><div><p class="eyebrow">EDUCORE UPDATES</p><h2>Notifications</h2></div><div class="v10-notification-actions"><button type="button" class="btn btn-light btn-small" id="v10PushNotificationBtn">Enable app alerts</button><button type="button" class="btn btn-light btn-small" id="v10MarkAllRead">Mark all read</button><button type="button" class="btn btn-danger-outline btn-small" id="v10ClearNotifications">Clear all</button></div></div><p id="v10PushStatus" class="educore-push-status" role="status">Device alerts can be enabled on this device.</p><div id="v10NotificationList" class="v10-notification-list"></div></div></dialog>`);
     document.getElementById('v10NotificationClose')?.addEventListener('click', () => document.getElementById('v10NotificationDialog')?.close());
     document.getElementById('v10MarkAllRead')?.addEventListener('click', async () => {
       if (!connected()) return;
@@ -384,7 +386,10 @@
       feature.notificationFetchedAt = 0;
       feature.notificationCleanupDone = false;
       feature.notificationFetchPromise = null;
+      feature.notificationFailures = 0;
+      feature.notificationRetryAt = 0;
     }
+    if (!force && Date.now() < feature.notificationRetryAt) return;
     if (feature.notificationFetchPromise) return feature.notificationFetchPromise;
     if (!force && feature.notificationFetchedAt && Date.now() - feature.notificationFetchedAt < NOTIFICATION_CACHE_MS) {
       renderNotifications();
@@ -411,9 +416,13 @@
         .limit(60);
       if (error) {
         console.warn('Notifications not ready:', error.message || error);
+        feature.notificationFailures += 1;
+        feature.notificationRetryAt = Date.now() + Math.min(15 * 60000, NOTIFICATION_POLL_MS * Math.pow(2, feature.notificationFailures - 1));
         return;
       }
       feature.notifications = data || [];
+      feature.notificationFailures = 0;
+      feature.notificationRetryAt = 0;
       feature.notificationFetchedAt = Date.now();
       renderNotifications();
     })();
@@ -427,7 +436,7 @@
 
   async function openNotifications() {
     ensureNotificationDialog();
-    await refreshNotifications();
+    await refreshNotifications({ force: true });
     const dialog = document.getElementById('v10NotificationDialog');
     if (dialog && !dialog.open) dialog.showModal();
   }

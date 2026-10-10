@@ -1,0 +1,55 @@
+/* EduCore V3.4: Mathside V24.17 parity without replacing subject themes. */
+/* V24.17: classic calendar + consistent destructive buttons. */
+.classic-calendar-toolbar{display:flex;gap:12px;align-items:end;justify-content:space-between;flex-wrap:wrap;margin:15px 0}
+.classic-calendar-toolbar label{font-size:13px;font-weight:650;display:grid;gap:5px;max-width:260px}
+.classic-calendar-toolbar select{min-width:200px;max-width:100%;border:1px solid #e5d4c2;background:#fff;border-radius:10px;padding:11px}
+.classic-calendar-month-nav{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.classic-calendar-month-nav strong{min-width:175px;text-align:center}
+.classic-calendar-month-nav .btn{min-width:40px;justify-content:center}
+.classic-calendar-wrapper,.classic-calendar-agenda{background:#fff;border:1px solid #e9d9cc;border-radius:16px;box-shadow:0 6px 20px rgba(74,49,26,.07);overflow:hidden}
+.classic-calendar-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--subject-soft,#f7f7ff);border-bottom:1px solid #eedfd3}
+.classic-calendar-weekdays span{padding:13px 0;text-align:center;font-size:11px;font-weight:800;color:#795337}
+.classic-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.classic-calendar-date{min-width:0;min-height:104px;display:flex;flex-direction:column;gap:5px;align-items:stretch;text-align:left;background:#fff;border:0;border-right:1px solid #f1e9e1;border-bottom:1px solid #f1e9e1;padding:9px;cursor:pointer;color:#1d2739}
+.classic-calendar-date:nth-child(7n){border-right:0}
+.classic-calendar-date.outside{background:#fcfaf7;color:#a39e96}
+.classic-calendar-date.today .classic-day-number{color:#fff;background:var(--subject-primary,#4f46e5);border-radius:50%}
+.classic-calendar-date.chosen{outline:2px solid var(--subject-primary,#4f46e5);outline-offset:-2px;background:var(--subject-soft,#f7f7ff)}
+.classic-day-number{width:27px;height:27px;display:grid;place-items:center;font-size:13px;font-weight:700}
+.classic-calendar-event{display:block;min-width:0;font-size:10px;padding:5px 6px;border-radius:7px;background:var(--subject-soft,#f7f7ff);box-shadow:inset 3px 0 var(--event-color,var(--subject-primary,#4f46e5));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#47321e}
+.classic-calendar-date>small{font-size:10px;color:#746351}
+.classic-calendar-agenda{margin-top:18px;padding:20px}
+.classic-calendar-agenda h3{margin:0 0 14px;font-size:18px}
+.classic-agenda-row{display:flex;gap:14px;align-items:center;padding:12px 0;border-top:1px solid #eee5dc}
+.classic-agenda-row .classic-agenda-date{flex:0 0 50px;text-align:center;background:var(--subject-soft,#f7f7ff);color:var(--subject-dark,#312e81);border-radius:10px;font-weight:700;font-size:12px;padding:9px 5px}
+.classic-agenda-row>div{flex:1;min-width:0}
+.classic-agenda-row strong,.classic-agenda-row small{display:block}
+.classic-agenda-row small{color:#776b63;margin-top:2px;font-size:12px}
+@media (max-width:650px){.classic-calendar-toolbar{align-items:stretch}.classic-calendar-toolbar label{max-width:none}.classic-calendar-month-nav{width:100%;justify-content:space-between}.classic-calendar-month-nav strong{min-width:0}.classic-calendar-date{min-height:66px;padding:5px}.classic-calendar-event{font-size:0;height:6px;padding:0;border-radius:6px}.classic-calendar-event:after{content:'';display:block}.classic-calendar-weekdays span{padding:9px 1px;font-size:9px}.classic-agenda-row{gap:8px}.classic-agenda-row .btn{padding:8px;font-size:12px}}
+
+
+
+/* Keep Create Class simple and usable on narrow devices. */
+#sectionModal{box-sizing:border-box;max-width:calc(100vw - 20px)}
+#sectionModal .modal-box{box-sizing:border-box;width:min(560px,calc(100vw - 24px));max-width:100%;overflow-x:hidden}
+#sectionModal .form-stack,#sectionModal .form-stack>label{min-width:0}
+#sectionModal input,#sectionModal select{box-sizing:border-box;width:100%;max-width:100%;min-width:0}
+#sectionModal .field-help{overflow-wrap:anywhere;white-space:normal}
+@media(max-width:480px){#sectionModal .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}#sectionModal .modal-actions .btn{min-width:0;padding-inline:8px}}
+/* Red/white for destructive actions only — archives remain neutral. */
+.btn-danger,.btn-danger-outline,.table-delete,
+[data-delete-class],[data-delete-student],[data-delete-assignment-group],
+[data-delete-assignment],[data-notification-delete],
+#bulkDeleteStudentsBtn,#bulkDeleteAssignmentsBtn,#confirmDeleteClassBtn,
+#confirmDeleteAssignmentBtn,#deleteStudentAccountBtn,
+#v10ClearNotifications,.v10-notification-delete{
+  background:#c62828!important;border:1px solid #c62828!important;color:#fff!important;
+  box-shadow:0 3px 9px rgba(139,22,22,.12);
+}
+.btn-danger:hover,.btn-danger-outline:hover,.table-delete:hover,
+[data-delete-class]:hover,[data-delete-student]:hover,[data-delete-assignment-group]:hover,
+[data-notification-delete]:hover,#v10ClearNotifications:hover{background:#a61919!important;border-color:#a61919!important;color:#fff!important}
+.btn-danger:disabled,.btn-danger-outline:disabled,.table-delete:disabled,[data-delete-class]:disabled,[data-delete-student]:disabled,[data-delete-assignment-group]:disabled{opacity:.55;cursor:wait}
+.educore-push-status{margin:0 0 12px;font-size:12px;line-height:1.45;color:var(--subject-dark,#312e81);padding:9px 12px;background:var(--subject-soft,#f6f6ff);border:1px solid color-mix(in srgb,var(--subject-primary,#4f46e5) 19%,white);border-radius:10px}
+/* EduCore icon is a symbol only: leave separate brand name as accessible text. */
+img.cap-logo,.loading-logo img,.subject-orbit-center img,img.v8-logo-icon{object-fit:contain}
